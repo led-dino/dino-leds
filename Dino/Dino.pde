@@ -21,6 +21,7 @@ Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
+  new Dots(),
   new ColorWaves(),
   new GrowingSpheres(),
   new ColorWave(), 
@@ -180,13 +181,13 @@ void draw() {
   lastTimeUpdate = newMillis;
 
   LightingDesign design = designs[currentDesign];
+  design.update(diff);
   if (transitioning) {
     transitionPercent += TRANSITION_INC_AMOUNT;
     if (transitionPercent >= 1) {
       transitioning = false;
     }
-  } else {
-    design.update(diff);
+    oldDesign.update(diff);
   }
 
   if (DRAW_SIMPLE) {
