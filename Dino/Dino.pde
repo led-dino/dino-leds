@@ -21,8 +21,10 @@ Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
+  new GrowingSpheres(),
   new ColorWave(), 
-  new Pulse()
+  new Pulse(), 
+  new Rain()
 };
 
 // State variables
@@ -36,6 +38,8 @@ boolean drawModelFrame = false;
 final color BLACK = color(0);
 DeviceRegistry registry;
 StripObserver stripObserver;
+
+long lastTimeUpdate = 0;
 
 void settings() {
   if (DRAW_SIMPLE) {
@@ -60,6 +64,7 @@ void setup() {
   println("Press F to toggle wireframe");
   println("Press A to toggle auto-cycle");
   millisLastChange = millis();
+  lastTimeUpdate = millis();
 }
 
 void nextDesign() {
@@ -103,7 +108,6 @@ void drawDebug() {
   }
 
   sphereDetail(1);
-  designs[currentDesign].update();
   for (int strip = 0; strip < model.getNumStrips(); ++strip) {
     Vec3[] stripPoints = model.getLedLocations(strip);
     for (int ledNum = 0; ledNum < stripPoints.length; ++ledNum) {
@@ -168,6 +172,9 @@ void draw() {
   if (autoCycle && millisLastChange + TIME_BETWEEN_CYCLES_MILLIS < millis()) {
     nextDesign();
   }
+  long newMillis = millis();
+  long diff = newMillis - lastTimeUpdate;
+  lastTimeUpdate = newMillis;
 
   LightingDesign design = designs[currentDesign];
   if (transitioning) {
@@ -176,7 +183,7 @@ void draw() {
       transitioning = false;
     }
   } else {
-    design.update();
+    design.update(diff);
   }
 
   if (DRAW_SIMPLE) {

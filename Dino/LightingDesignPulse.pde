@@ -24,7 +24,7 @@ class Pulse implements LightingDesign {
     blackColor = color(hue(blackColor), saturation(blackColor), 20);
   }
 
-  void update() {
+  void update(long millis) {
     lerpValue += LERP_INCREMENT;
     if (lerpValue >= 2) {
       colorMode(HSB, 100);

@@ -1,13 +1,14 @@
 class ColorWave implements LightingDesign {
-
-  float SLOW_COLOR_ADJUST = 0.1;
+  float SLOW_COLOR_ADJUST = 0.05;
   float DISCON_CHANCE = 0.0001;
-  int NUM_SEGMENTS = 100;
+  int NUM_SEGMENTS = 300;
+
   color[] waveSegments = new color[NUM_SEGMENTS];
   Model model;
 
-  ColorWave() {}
-  
+  ColorWave() {
+  }
+
   void init(Model m) {
     model = m;
     colorMode(RGB, 255);
@@ -33,7 +34,7 @@ class ColorWave implements LightingDesign {
     return input + (sign * adjust);
   }
 
-  void update() {
+  void update(long millis) {
     color adjustedColor = adjustPixel(waveSegments[0]);
     for (int i = waveSegments.length - 1; i >= 0; --i) {
       if (i == 0)
