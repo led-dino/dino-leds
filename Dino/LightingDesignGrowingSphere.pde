@@ -1,4 +1,3 @@
-import java.util.*;
 
 class GrowingSpheres implements LightingDesign {
   final float kSphereChance = 0.01;
@@ -23,7 +22,7 @@ class GrowingSpheres implements LightingDesign {
 
   color randomColor() {
     colorMode(HSB, 100);
-    color c =color(random(100), random(80, 100), 100);
+    color c =color(random(100), random(80, 100), random(80, 100));
     return c;
   }
 
@@ -37,12 +36,13 @@ class GrowingSpheres implements LightingDesign {
 
   void init(Model m) {
     colorMode(HSB, 100);
-    sphereCenter = new Vec3(m.getMinX() + m.getMaxX(), m.getMinY() + m.getMaxY(), m.getMinZ()+ m.getMaxZ());
-    sphereCenter.mulLocal(1f/2);
-    maxRadius = max(max(m.getMaxX() - m.getMinX(), m.getMaxY() - m.getMinY()), m.getMaxZ() - m.getMinZ());
+    sphereCenter = getModelCenter(m);
+    maxRadius = getModelMaxSize(m) / 2;
 
     currentColor = randomColor();
     spheres.add(createSphere());
+  }
+  void onCycleStart() {
   }
 
   void update(long millis) {
@@ -61,7 +61,7 @@ class GrowingSpheres implements LightingDesign {
       s.radius += millis * 1f / 1000 * s.speed;
       lastRadius = s.radius;
     }
-    
+
     if (random(1) < kSphereChance) {
       spheres.add(0, createSphere());
     }

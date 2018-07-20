@@ -14,13 +14,14 @@ final boolean DRAW_SIMPLE = false;
 final int SIMPLE_DRAW_SCALE = 5;
 
 // Transition params
-final int TIME_BETWEEN_CYCLES_MILLIS = 30*1000;
+final int TIME_BETWEEN_CYCLES_MILLIS = 60*1000;
 final float TRANSITION_INC_AMOUNT = 0.05;
 
 Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
+  new ColorWaves(),
   new GrowingSpheres(),
   new ColorWave(), 
   new Pulse(), 
@@ -60,6 +61,7 @@ void setup() {
   frameRate(10);
   for (LightingDesign design : designs)
     design.init(model);
+  designs[0].onCycleStart();
   println("Press N to go to next design");
   println("Press F to toggle wireframe");
   println("Press A to toggle auto-cycle");
@@ -76,6 +78,7 @@ void nextDesign() {
   currentDesign++;
   currentDesign = currentDesign % designs.length;
   millisLastChange = millis();
+  designs[currentDesign].onCycleStart();
 }
 
 void keyTyped() {

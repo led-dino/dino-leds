@@ -26,6 +26,8 @@ class Rain implements LightingDesign {
     color between = lerpColor(backgroundColorA, backgroundColorB, 0.5);
     rainColor = color(hue(between), saturation(between), brightness(between) - 10);
   }
+  
+  void onCycleStart() {}
 
   void update(long millis) {
     backgroundLerpAngle += 0.04;

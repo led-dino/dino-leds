@@ -87,6 +87,7 @@ static class DinoModel implements Model {
   }
 
   void calculateLedPositions() {
+    // The walks the led strips, and creates a position every kLedSeparationInCM cm.
     for (int stripNum = 0; stripNum < kStripLines.length; stripNum++) {
       Vec3[] points = kStripLines[stripNum];
       float[] lengths = new float[points.length-1];

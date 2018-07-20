@@ -3,6 +3,10 @@ interface LightingDesign {
   void init(Model m);
   // Called to update movement etc, repeatedly per frame
   void update(long millis);
+  
+  // Called when this design is getting transitioned to
+  void onCycleStart();
+  
   // Called to get color in current state - can be called before update().
   color getColor(int stripNum, int ledNum, Vec3 position);   
 }

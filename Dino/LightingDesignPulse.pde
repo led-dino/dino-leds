@@ -23,6 +23,11 @@ class Pulse implements LightingDesign {
     blackColor = lerpColor(currentColor, nextColor, 0.5);
     blackColor = color(hue(blackColor), saturation(blackColor), 20);
   }
+  
+  void onCycleStart() {
+    // Start with a full color
+    lerpValue = 0;
+  }
 
   void update(long millis) {
     lerpValue += LERP_INCREMENT;

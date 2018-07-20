@@ -17,6 +17,8 @@ class ColorWave implements LightingDesign {
       waveSegments[i] = c;
     }
   }
+  
+  void onCycleStart() {}
 
   color adjustPixel(color input) {
     colorMode(RGB, 255);
