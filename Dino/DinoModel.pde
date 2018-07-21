@@ -75,6 +75,12 @@ static class DinoModel implements Model {
 
   };
 
+  public static final ModelDebugLine[] debugLines = new ModelDebugLine[] {
+    new ModelDebugLine(
+    new Vec3[] {new Vec3(212.4, 646.2, 219.3), new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11), new Vec3(212.4, 646.2, 219.3)}, 
+    #ff0000)
+  };
+
   Vec3 min = new Vec3();
   Vec3 max = new Vec3();
   Vec3[][] ledPositions = new Vec3[kStripLines.length][kNumLedsPerStrip];
@@ -130,6 +136,10 @@ static class DinoModel implements Model {
         max.z = max(max.z, point.z);
       }
     }
+  }
+
+  ModelDebugLine[] getDebugLines() {
+    return debugLines;
   }
 
   int getNumStrips() {

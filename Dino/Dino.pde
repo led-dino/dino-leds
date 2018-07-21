@@ -123,6 +123,16 @@ void drawDebug() {
       translate(-position.x, -position.y, -position.z);
     }
   }
+
+  for (ModelDebugLine line : model.getDebugLines()) {
+    noFill();
+    stroke(line.c);
+    beginShape();
+    for (Vec3 p : line.points) {
+      vertex(p.x, p.y, p.z);
+    }
+    endShape();
+  }
 }
 
 color getColorForStripLed(int strip, int led) {
