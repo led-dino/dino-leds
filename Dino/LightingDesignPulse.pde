@@ -10,16 +10,10 @@ class Pulse implements LightingDesign {
   Pulse() {
   }
 
-  color randomColor() {
-    colorMode(HSB, 100);
-    color c =color(random(100), random(80, 100), 100);
-    return c;
-  }
-
   void init(Model m) {
     colorMode(HSB, 100);
-    currentColor = randomColor();
-    nextColor = randomColor();
+    currentColor = randomAccentColor();
+    nextColor = randomAccentColor();
     blackColor = lerpColor(currentColor, nextColor, 0.5);
     blackColor = color(hue(blackColor), saturation(blackColor), 20);
   }
@@ -34,7 +28,7 @@ class Pulse implements LightingDesign {
     if (lerpValue >= 2) {
       colorMode(HSB, 100);
       currentColor = nextColor;
-      nextColor = randomColor();
+      nextColor = randomAccentColor();
       blackColor = lerpColor(currentColor, nextColor, 0.5);
       blackColor = color(hue(blackColor), saturation(blackColor), 20);
       lerpValue = 0;

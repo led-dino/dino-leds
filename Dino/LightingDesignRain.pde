@@ -1,7 +1,7 @@
 import java.util.*;
 
 class Rain implements LightingDesign {
-  final float kRainChance = 0.05;
+  final float kRainChancePerSecond = 0.6;
 
   Model model;
   color backgroundColorA;
@@ -21,7 +21,7 @@ class Rain implements LightingDesign {
   void init(Model m) {
     colorMode(HSB, 100);
     this.model = m;
-    backgroundColorA = #195ABF;
+    backgroundColorA = #003DA2;
     backgroundColorB = #196EC1;
     color between = lerpColor(backgroundColorA, backgroundColorB, 0.5);
     rainColor = color(hue(between), saturation(between), brightness(between) - 10);
@@ -39,7 +39,7 @@ class Rain implements LightingDesign {
       newRainsA.add(rain);
     }
     rainsA = newRainsA;
-    if (random(1) < kRainChance) {
+    if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
       rainsA.add(kRainSpaceMax);
     }
 
@@ -51,7 +51,7 @@ class Rain implements LightingDesign {
       newRainsB.add(rain);
     }
     rainsB = newRainsB;
-    if (random(1) < kRainChance) {
+    if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
       rainsB.add(kRainSpaceMax);
     }
   }

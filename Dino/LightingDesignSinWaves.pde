@@ -1,8 +1,8 @@
-enum ColorWavesAxis {
+enum SinWavesAxis {
   X, Y, Z
 };
 
-class ColorWaves implements LightingDesign {
+class SinWaves implements LightingDesign {
   final int kMaxWaveSize = 800;
   final int kMinWaveSize = 5;
   final float kWaveSpeedCMPerSecondMin = 50;
@@ -15,7 +15,7 @@ class ColorWaves implements LightingDesign {
     color targetColor;
   }
 
-  ColorWavesAxis axis;
+  SinWavesAxis axis;
   Model model;
   float maxPosition;
   float speedCMPerSecond;
@@ -23,21 +23,15 @@ class ColorWaves implements LightingDesign {
 
   List<Wave> waves = new ArrayList<Wave>();
 
-  ColorWaves() {
+  SinWaves() {
   }
 
   Wave createWave() {
     Wave w = new Wave();
     w.size = random(kMinWaveSize, kMaxWaveSize);
     w.position = -w.size;
-    w.targetColor = randomColor();
+    w.targetColor = randomAccentColor();
     return w;
-  }
-
-  color randomColor() {
-    colorMode(HSB, 100);
-    color c =color(random(100), random(80, 100), random(80, 100));
-    return c;
   }
 
   void init(Model m) {
@@ -47,7 +41,7 @@ class ColorWaves implements LightingDesign {
   }
 
   void onCycleStart() {
-    axis = ColorWavesAxis.values()[(int)random(ColorWavesAxis.values().length)];
+    axis = SinWavesAxis.values()[(int)random(SinWavesAxis.values().length)];
     speedCMPerSecond = random(kWaveSpeedCMPerSecondMin, kWaveSpeedCMPerSecondMax);
   }
 
@@ -65,7 +59,7 @@ class ColorWaves implements LightingDesign {
         canCreateNew = false;
       }
     }
-    if (canCreateNew && random(1) < seconds * kWaveChancePerSecond) {
+    if (canCreateNew && isRandomChancePerSecondFromMillis(millis, kWaveChancePerSecond)) {
       waves.add(createWave());
     }
   }
@@ -73,15 +67,15 @@ class ColorWaves implements LightingDesign {
   color getColor(int stripNum, int ledNum, Vec3 position) {
     float pixelPosition = 0;
     switch(axis) {
-      case X:
-        pixelPosition = position.x;
-        break;
-      case Y:
-        pixelPosition = position.y;
-        break;
-      case Z:
-        pixelPosition = position.z;
-        break;
+    case X:
+      pixelPosition = position.x;
+      break;
+    case Y:
+      pixelPosition = position.y;
+      break;
+    case Z:
+      pixelPosition = position.z;
+      break;
     }
     for (Wave w : waves ) {
       float distance = abs(pixelPosition - w.position);

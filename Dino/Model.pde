@@ -1,8 +1,8 @@
 static class ModelDebugLine {
   Vec3[] points;
   color c;
-  
-  ModelDebugLine(Vec3[] points, color c) {
+
+  ModelDebugLine(color c, Vec3[] points) {
     this.points = points;
     this.c = c;
   }
@@ -16,7 +16,7 @@ interface Model {
   Vec3[] getLedLocations(int stripNum);
 
   Vec3[] getStripLinePoints(int stripNum);
-  
+
   ModelDebugLine[] getDebugLines();
 
   float getMinX();

@@ -1,6 +1,5 @@
-
 class GrowingSpheres implements LightingDesign {
-  final float kSphereChance = 0.01;
+  final float kSphereChancePerSecond = 0.25;
   final float kSphereMinSpeed = 10;
   final float kSphereMaxSpeed = 100;
 
@@ -62,7 +61,7 @@ class GrowingSpheres implements LightingDesign {
       lastRadius = s.radius;
     }
 
-    if (random(1) < kSphereChance) {
+    if (isRandomChancePerSecondFromMillis(millis, kSphereChancePerSecond)) {
       spheres.add(0, createSphere());
     }
   }

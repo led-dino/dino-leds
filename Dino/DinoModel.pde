@@ -76,9 +76,9 @@ static class DinoModel implements Model {
   };
 
   public static final ModelDebugLine[] debugLines = new ModelDebugLine[] {
-    new ModelDebugLine(
-    new Vec3[] {new Vec3(212.4, 646.2, 219.3), new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11), new Vec3(212.4, 646.2, 219.3)}, 
-    #ff0000)
+    new ModelDebugLine(#909000, new Vec3[] {new Vec3(212.4, 646.2, 219.3), new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11), new Vec3(212.4, 646.2, 219.3)}),
+    new ModelDebugLine(#909000, new Vec3[] {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58)}),
+    new ModelDebugLine(#880000, new Vec3[] {new Vec3(265.66, 98, 0), new Vec3(316.5, 26.7, 164.57), new Vec3(500.382, 10.34, 213.49)/*, new Vec3(684.32, 26.6, 164.5), new Vec3(735.1, 98, 0)*/})
   };
 
   Vec3 min = new Vec3();

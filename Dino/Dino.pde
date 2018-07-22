@@ -9,21 +9,21 @@ import java.util.*;
 // Press 'f' to toggle dino frame
 // Press 'a' to toggle auto-cycle
 
-// Draw simple version (no 3d)
-final boolean DRAW_SIMPLE = false;
-final int SIMPLE_DRAW_SCALE = 5;
+// Draw simple version (no 3d). Use this on old / slow computers.
+final boolean kSimpleDraw = false;
+final float kSimpleDrawScale = 5;
 
-// Transition params
-final int TIME_BETWEEN_CYCLES_MILLIS = 60*1000;
-final float TRANSITION_INC_AMOUNT = 0.05;
+// Transition params.
+final int kCycleTimeMillis = 60*1000;
+final float kSecondsForTransition = 5;
 
 Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
-  new Dots(),
-  new ColorWaves(),
-  new GrowingSpheres(),
+  new Dots(), 
+  new SinWaves(), 
+  new GrowingSpheres(), 
   new ColorWave(), 
   new Pulse(), 
   new Rain()
@@ -44,8 +44,8 @@ StripObserver stripObserver;
 long lastTimeUpdate = 0;
 
 void settings() {
-  if (DRAW_SIMPLE) {
-    size(model.getNumLedsPerStrip() * SIMPLE_DRAW_SCALE, model.getNumStrips() * SIMPLE_DRAW_SCALE);
+  if (kSimpleDraw) {
+    size((int)(model.getNumLedsPerStrip() * kSimpleDrawScale), (int)(model.getNumStrips() * kSimpleDrawScale));
   } else {
     size(1024, 1024, P3D);
   }
@@ -68,18 +68,33 @@ void setup() {
   println("Press A to toggle auto-cycle");
   millisLastChange = millis();
   lastTimeUpdate = millis();
+  textSize(20);
 }
 
-void nextDesign() {
-  if (!transitioning) {
-    oldDesign = designs[currentDesign];
+void draw() {
+  if (autoCycle && millisLastChange + kCycleTimeMillis < millis()) {
+    nextDesign();
   }
-  transitioning = true;
-  transitionPercent = 0;
-  currentDesign++;
-  currentDesign = currentDesign % designs.length;
-  millisLastChange = millis();
-  designs[currentDesign].onCycleStart();
+  long newMillis = millis();
+  long diff = newMillis - lastTimeUpdate;
+  lastTimeUpdate = newMillis;
+
+  LightingDesign design = designs[currentDesign];
+  design.update(diff);
+  if (transitioning) {
+    transitionPercent += diff * 1f / 1000 / kSecondsForTransition;
+    if (transitionPercent >= 1) {
+      transitioning = false;
+    }
+    oldDesign.update(diff);
+  }
+
+  if (kSimpleDraw) {
+    drawSimple();
+  } else {
+    drawDebug();
+  }
+  sendPixelsToPusher();
 }
 
 void keyTyped() {
@@ -91,11 +106,23 @@ void keyTyped() {
     autoCycle = !autoCycle;
 }
 
+
+void nextDesign() {
+  if (!transitioning) {
+    transitionPercent = 0;
+    oldDesign = designs[currentDesign];
+  }
+  transitioning = true;
+  currentDesign++;
+  currentDesign = currentDesign % designs.length;
+  millisLastChange = millis();
+  designs[currentDesign].onCycleStart();
+}
+
 void drawDebug() {
   background(0);
   lights();
-  scale(1, 1, -1);
-  camera(-500 + (width-mouseX)/2, -300 + (height-mouseY)/2, 500 + (width-mouseX)/2, 700, 700, 0, 0, 0, -1);
+  camera(-500 + (width-mouseX)/2, -300 + (height-mouseY)/2, 500 + (width-mouseX)/2, 500, 700, 0, 0, 0, -1);
   drawGround();
 
   if (drawModelFrame) {
@@ -111,15 +138,16 @@ void drawDebug() {
     }
   }
 
-  sphereDetail(1);
+  sphereDetail(3);
   for (int strip = 0; strip < model.getNumStrips(); ++strip) {
     Vec3[] stripPoints = model.getLedLocations(strip);
     for (int ledNum = 0; ledNum < stripPoints.length; ++ledNum) {
       Vec3 position = stripPoints[ledNum];
-      stroke(getColorForStripLed(strip, ledNum));
-      //point(position.x,position.y,position.z);
+      color c = getColorForStripLed(strip, ledNum);
+      stroke(c);
+      fill(c);
       translate(position.x, position.y, position.z);
-      sphere(1);
+      sphere(0.25f);
       translate(-position.x, -position.y, -position.z);
     }
   }
@@ -140,24 +168,23 @@ color getColorForStripLed(int strip, int led) {
   color newColor = designs[currentDesign].getColor(strip, led, position);
   if (!transitioning)
     return newColor;
-
   color oldColor = oldDesign.getColor(strip, led, position);
-
-  if (transitionPercent < 0.5)
-    return lerpColor(oldColor, BLACK, smooth(transitionPercent*2));
-  return lerpColor(BLACK, newColor, smooth(transitionPercent*2 - 1));
+  return lerpColor(oldColor, newColor, transitionPercent);
 }
 
 void drawSimple() {
   background(0);
+  pushMatrix();
+  scale(kSimpleDrawScale * 1f / 2);
   for (int i = 0; i <model.getNumStrips(); i++) {
     for (int j = 0; j< model.getLedLocations(i).length; j++) {
       color c = getColorForStripLed(i, j);
       stroke(c);
       fill(c);
-      ellipse(SIMPLE_DRAW_SCALE/2 + j*SIMPLE_DRAW_SCALE, SIMPLE_DRAW_SCALE/2 + i*SIMPLE_DRAW_SCALE, SIMPLE_DRAW_SCALE / 5, SIMPLE_DRAW_SCALE / 5);
+      ellipse(j*2 + 1, i*2 + 1, 1, 1);
     }
   }
+  popMatrix();
 }
 
 void sendPixelsToPusher() {
@@ -181,33 +208,6 @@ void sendPixelsToPusher() {
     }
   }
 }
-
-void draw() {
-  if (autoCycle && millisLastChange + TIME_BETWEEN_CYCLES_MILLIS < millis()) {
-    nextDesign();
-  }
-  long newMillis = millis();
-  long diff = newMillis - lastTimeUpdate;
-  lastTimeUpdate = newMillis;
-
-  LightingDesign design = designs[currentDesign];
-  design.update(diff);
-  if (transitioning) {
-    transitionPercent += TRANSITION_INC_AMOUNT;
-    if (transitionPercent >= 1) {
-      transitioning = false;
-    }
-    oldDesign.update(diff);
-  }
-
-  if (DRAW_SIMPLE) {
-    drawSimple();
-  } else {
-    drawDebug();
-  }
-  sendPixelsToPusher();
-}
-
 void stop() {
   registry.stopPushing();
 }
@@ -230,4 +230,14 @@ void drawGround() {
   vertex(1350, 1350, 1);
   vertex(50, 1350, 1);
   endShape();
+
+  fill(255);
+  pushMatrix();
+  translate(0, 0, 11);
+  rotateZ(PI/2);
+  translate(100, -100, 0);
+  text("Press 'N' for next design", 0, 0);
+  text("Press 'F' to toggle wireframe", 0, 20);
+  text("Press A to toggle auto-cycle", 0, 40);
+  popMatrix();
 }
