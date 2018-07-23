@@ -47,6 +47,8 @@ void settings() {
   if (kSimpleDraw) {
     size((int)(model.getNumLedsPerStrip() * kSimpleDrawScale), (int)(model.getNumStrips() * kSimpleDrawScale));
   } else {
+    // to have full screen, uncomment the below line and comment out the 'size' call.
+    // fullScreen(P3D);
     size(1024, 1024, P3D);
   }
   registry = new DeviceRegistry();
@@ -147,7 +149,7 @@ void drawDebug() {
       stroke(c);
       fill(c);
       translate(position.x, position.y, position.z);
-      sphere(0.25f);
+      sphere(0.5f);
       translate(-position.x, -position.y, -position.z);
     }
   }
