@@ -1,4 +1,5 @@
 # Dino LEDs
+![dino-leds screenshot](screenshot.png "Screenshot")
 
 ## Setup
 
