@@ -1,5 +1,5 @@
 class Dots implements LightingDesign {
-  final int kMillisPerDotMove = 500;
+  final int kMillisPerDotMove = 100;
   final float kDotChancePerPixel = 0.1f;
 
   int[][] dots;
@@ -55,6 +55,7 @@ class Dots implements LightingDesign {
     milliAccum += millis;
     if (milliAccum < kMillisPerDotMove)
       return;
+    milliAccum = 0;
 
     int[][] newDots = new int[model.getNumStrips()][model.getNumLedsPerStrip()];
     for (int i = 0; i < dots.length; ++i) {

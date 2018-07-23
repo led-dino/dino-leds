@@ -61,7 +61,7 @@ void settings() {
 }
 
 void setup() {
-  frameRate(10);
+  frameRate(20);
   for (LightingDesign design : designs)
     design.init(model);
   designs[0].onCycleStart();
@@ -237,9 +237,17 @@ void drawGround() {
   pushMatrix();
   translate(0, 0, 11);
   rotateZ(PI/2);
-  translate(100, -100, 0);
-  text("Press 'N' for next design", 0, 0);
-  text("Press 'F' to toggle wireframe", 0, 20);
-  text("Press A to toggle auto-cycle", 0, 40);
+  translate(100, -150, 0);
+  int line = 0;
+  if (designs[currentDesign] != null) {
+    text("Current Design: " + designs[currentDesign].getClass().getSimpleName(), 0, line);
+    line+=20;
+  }
+  text("Press 'N' for next design", 0, line);
+  line+=20;
+  text("Press 'F' to toggle wireframe", 0, line);
+  line+=20;
+  text("Press A to toggle auto-cycle", 0, line);
+  line+=20;
   popMatrix();
 }

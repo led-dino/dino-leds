@@ -1,6 +1,6 @@
 class GrowingSpheres implements LightingDesign {
-  final float kSphereChancePerSecond = 0.25;
-  final float kSphereMinSpeed = 10;
+  final float kSphereChancePerSecond = 0.15;
+  final float kSphereMinSpeed = 1;
   final float kSphereMaxSpeed = 100;
 
   class Sphere {
@@ -19,17 +19,15 @@ class GrowingSpheres implements LightingDesign {
   GrowingSpheres() {
   }
 
-  color randomColor() {
-    colorMode(HSB, 100);
-    color c =color(random(100), random(80, 100), random(80, 100));
-    return c;
-  }
-
   Sphere createSphere() {
     Sphere s = new Sphere();
     s.radius = 0;
     s.speed = random(kSphereMinSpeed, kSphereMaxSpeed);
-    s.c = randomColor();
+    if (!spheres.isEmpty()) {
+      s.c = randomDifferentAccentColor(spheres.get(0).c);
+    } else {
+      s.c = randomAccentColor();
+    }
     return s;
   }
 
@@ -38,7 +36,7 @@ class GrowingSpheres implements LightingDesign {
     sphereCenter = getModelCenter(m);
     maxRadius = getModelMaxSize(m) / 2;
 
-    currentColor = randomColor();
+    currentColor = randomAccentColor();
     spheres.add(createSphere());
   }
   void onCycleStart() {

@@ -4,11 +4,28 @@ float smooth(float a) {
 }
 
 boolean isRandomChancePerSecondFromMillis(long millis, float chancePerSecond) {
-  return random(1) < millis * chancePerSecond / 1000;
+  // The chance of it NOT happening in a second, is the multiplication of it
+  // not happening in all of the 'sub' sections multiplied together.
+  int checksPerSecond = (int) (1000f / millis);
+  // Calculate the chance it shouldn't happen in this period
+  float inverseChance = pow(1-chancePerSecond, 1f / checksPerSecond);
+  return random(1) > inverseChance;
 }
 
 color randomAccentColor() {
   colorMode(HSB, 100);
   color c =color(random(100), random(70, 100), random(90, 100));
+  return c;
+}
+
+
+color randomDifferentAccentColor(color from) {
+  colorMode(HSB, 100);
+  color c;
+  int hueDistance;
+  do {
+    c =color(random(100), random(70, 100), random(90, 100));
+    hueDistance = (int) min(abs(hue(c)-hue(from)), 100 - abs(hue(c)-hue(from)));
+  } while (hueDistance < 20);
   return c;
 }
