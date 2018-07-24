@@ -12,7 +12,6 @@ class GrowingSpheres implements LightingDesign {
   color currentColor;
 
   Vec3 sphereCenter;
-  float sphereRadius;
   float maxRadius;
   List<Sphere> spheres = new ArrayList<Sphere>();
 
