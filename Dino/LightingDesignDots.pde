@@ -1,5 +1,5 @@
 class Dots implements LightingDesign {
-  final int kMillisPerDotMove = 100;
+  final int kMillisPerDotMove = 80;
   final float kDotChancePerPixel = 0.1f;
 
   int[][] dots;

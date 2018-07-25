@@ -1,6 +1,6 @@
 class Pulse implements LightingDesign {
-  final float LERP_INCREMENT = 0.02;
-
+  final int kSecondsPerCycle = 10;
+  
   color currentColor;
   color nextColor;
   color blackColor;
@@ -24,7 +24,7 @@ class Pulse implements LightingDesign {
   }
 
   void update(long millis) {
-    lerpValue += LERP_INCREMENT;
+    lerpValue += 2 * (millis * 1f / 1000 / kSecondsPerCycle);
     if (lerpValue >= 2) {
       colorMode(HSB, 100);
       currentColor = nextColor;
@@ -41,9 +41,9 @@ class Pulse implements LightingDesign {
       effectiveLerp = effectiveLerp - 1;
     }
     if (lerpValue <= 1) {
-      return lerpColor(currentColor, blackColor, smooth(effectiveLerp));
+      return lerpColor(currentColor, blackColor, smoothToWave(effectiveLerp));
     } else {
-      return lerpColor(blackColor, nextColor, smooth(effectiveLerp));
+      return lerpColor(blackColor, nextColor, smoothToWave(effectiveLerp));
     }
   }
 }

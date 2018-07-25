@@ -1,6 +1,6 @@
 class ColorWave implements LightingDesign {
-  float kAdjustPercentPerSecond = 0.75;
-  float kDisconnectedColorChancePerSecond = 0.1f;
+  final float kAdjustPercentPerSecond = 0.8;
+  final float kDisconnectedColorChancePerSecond = 0.05f;
   int NUM_SEGMENTS = 300;
 
   color[] waveSegments = new color[NUM_SEGMENTS];

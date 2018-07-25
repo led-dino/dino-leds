@@ -1,7 +1,7 @@
 class GrowingSpheres implements LightingDesign {
   final float kSphereChancePerSecond = 0.15;
-  final float kSphereMinSpeed = 1;
-  final float kSphereMaxSpeed = 100;
+  final float kSphereMinSpeed = 10;
+  final float kSphereMaxSpeed = 80;
 
   class Sphere {
     float radius;

@@ -21,6 +21,7 @@ Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
+  new FallingDots(),
   new Dots(), 
   new SinWaves(), 
   new GrowingSpheres(), 
@@ -48,8 +49,8 @@ void settings() {
     size((int)(model.getNumLedsPerStrip() * kSimpleDrawScale), (int)(model.getNumStrips() * kSimpleDrawScale));
   } else {
     // to have full screen, uncomment the below line and comment out the 'size' call.
-    // fullScreen(P3D);
-    size(1024, 1024, P3D);
+    fullScreen(P3D);
+    //size(1024, 1024, P3D);
   }
   registry = new DeviceRegistry();
   stripObserver = new StripObserver();

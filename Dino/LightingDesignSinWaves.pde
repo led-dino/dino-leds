@@ -80,7 +80,7 @@ class SinWaves implements LightingDesign {
     for (Wave w : waves ) {
       float distance = abs(pixelPosition - w.position);
       if (distance < w.size) {
-        return lerpColor(w.targetColor, background, smooth(distance / w.size));
+        return lerpColor(w.targetColor, background, smoothToWave(distance / w.size));
       }
     }
     return background;
