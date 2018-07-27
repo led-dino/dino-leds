@@ -1,6 +1,7 @@
 import com.heroicrobot.dropbit.registry.*;
 import com.heroicrobot.dropbit.devices.pixelpusher.Pixel;
 import com.heroicrobot.dropbit.devices.pixelpusher.Strip;
+import org.deepsymmetry.beatlink.*;
 
 import processing.core.*;
 import java.util.*;
@@ -16,12 +17,14 @@ final float kSimpleDrawScale = 5;
 // Transition params.
 final int kCycleTimeMillis = 60*1000;
 final float kSecondsForTransition = 5;
+boolean beat = false;
+boolean oldBeat = false;
 
 Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
-  new FallingDots(),
+  new Physics(), 
   new Dots(), 
   new SinWaves(), 
   new GrowingSpheres(), 
@@ -72,7 +75,10 @@ void setup() {
   millisLastChange = millis();
   lastTimeUpdate = millis();
   textSize(20);
+  thread("startCdjListening");
 }
+
+boolean beatEdge = false;
 
 void draw() {
   if (autoCycle && millisLastChange + kCycleTimeMillis < millis()) {
@@ -81,8 +87,11 @@ void draw() {
   long newMillis = millis();
   long diff = newMillis - lastTimeUpdate;
   lastTimeUpdate = newMillis;
+  beatEdge = beat != oldBeat;
+  oldBeat = beat;
 
   LightingDesign design = designs[currentDesign];
+
   design.update(diff);
   if (transitioning) {
     transitionPercent += diff * 1f / 1000 / kSecondsForTransition;
@@ -213,6 +222,7 @@ void sendPixelsToPusher() {
 }
 void stop() {
   registry.stopPushing();
+  VirtualCdj.getInstance().stop();
 }
 
 void drawGround() {
@@ -226,7 +236,9 @@ void drawGround() {
   vertex(1400, 1400, 0);
   vertex(0, 1400, 0);
   endShape();
-  fill(20);
+  if (beat)
+    fill(25);
+  else fill (20);
   beginShape();
   vertex(50, 50, 1);
   vertex(1350, 50, 1);
@@ -251,4 +263,49 @@ void drawGround() {
   text("Press A to toggle auto-cycle", 0, line);
   line+=20;
   popMatrix();
+}
+
+void startCdjListening() {
+  println("starting cdj");
+  try {
+    VirtualCdj.getInstance().start();
+  } 
+  catch (java.net.SocketException e) {
+    System.err.println("Unable to start VirtualCdj: " + e);
+  }
+  println("about to listen");
+
+  VirtualCdj.getInstance().addMasterListener(new MasterListener() {
+    @Override
+      public void masterChanged(DeviceUpdate update) {
+      System.out.println("Master changed at " + new Date() + ": " + update);
+    }
+
+    @Override
+      public void tempoChanged(double tempo) {
+      System.out.println("Tempo changed at " + new Date() + ": " + tempo);
+    }
+
+    @Override
+      public void newBeat(Beat beat) {
+      System.out.println("Master player beat at " + new Date() + ": " + beat);
+    }
+  }
+  );
+  BeatFinder.getInstance().addBeatListener(new BeatListener() {
+    @Override
+      public void newBeat(Beat b) {
+      System.out.println("got beat?");
+      beat = !beat;
+    }
+  }
+  );
+  try {
+    BeatFinder.getInstance().start();
+  } 
+  catch (java.net.SocketException e) {
+    System.err.println("Unable to start beatfinder: " + e);
+  }
+
+  println("after start");
 }

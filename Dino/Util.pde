@@ -23,6 +23,13 @@ color randomAccentColor() {
   return c;
 }
 
+color randomAccentColorWhiter() {
+  colorMode(HSB, 100);
+  color c =color(random(100), random(30, 100), random(90, 100));
+  return c;
+}
+
+
 color randomDifferentAccentColor(color from) {
   colorMode(HSB, 100);
   color c;

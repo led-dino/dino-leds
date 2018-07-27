@@ -1,25 +1,34 @@
-class FallingDots implements LightingDesign {
+class Physics implements LightingDesign {
   final float kBallMinRadius = 4;
   final float kBalls = 10;
   final float kGravity = 0;
   final float kMaxVelocity = 50;
+  final float kBackgroundSecondsPerPulse = 10;
 
-  class Dot {
+  class Dot implements Comparable<Dot> {
     float position;
     float velocity;
     float force;
     float mass;
     float radius;
     color c;
+
+    int compareTo(Dot x) {
+      if (position == x.position)
+        return 0;
+      return position < x.position ? -1 : 1;
+    }
   }
 
   List<Dot> dots = new ArrayList<Dot>();
   float maxRadius;
   Model model;
   color lastColor = #000000;
+  color backgroundColor;
+  float backgroundColorPulseMillis = 0;
   float colorAnglePerBall;
-  
-  FallingDots() {
+
+  Physics() {
   }
   void init(Model m) {
     model = m;
@@ -33,7 +42,7 @@ class FallingDots implements LightingDesign {
     if (lastColor == #000000) {
       lastColor = randomAccentColor();
     } else {
-      lastColor =color((hue(lastColor) + colorAnglePerBall) % 100 , random(70, 100), random(90, 100));
+      lastColor = color((hue(lastColor) + colorAnglePerBall) % 100, random(70, 100), random(90, 100));
     }
     return lastColor;
   }
@@ -49,6 +58,9 @@ class FallingDots implements LightingDesign {
 
   // Called when this design is getting transitioned to
   void onCycleStart() {
+    backgroundColorPulseMillis = 0;
+    colorMode(HSB, 100);
+    backgroundColor = color(random(100), 100, 20);
     dots = new ArrayList<Dot>();
     for (int i = 0; i < kBalls; ++i) {
       Dot dot = new Dot();
@@ -59,12 +71,22 @@ class FallingDots implements LightingDesign {
       do {
         dot.position = random(model.getMinZ() + dot.radius, model.getMaxZ() - dot.radius);
       } while (doesDotIntersectOthers(dot.position, dot.radius));
-      println(dot.position);
       dots.add(dot);
     }
+    Collections.sort(dots);
   }
 
   void update(long millis) {
+    if (beatEdge) {
+      color lastColor = dots.get(dots.size()-1).c;
+      for (Dot d : dots) {
+        color l = d.c;
+        d.c = lastColor;
+        lastColor = l;
+      }
+    }
+
+    backgroundColorPulseMillis += millis;
     float dt = millis * 1f / 1000;
     for (Dot d : dots) {
       d.velocity += dt * (kGravity  + 1f/d.mass * d.force);
@@ -116,6 +138,7 @@ class FallingDots implements LightingDesign {
         return d.c;
       }
     }
-    return #000000;
+    color background = lerpColor(#000000, backgroundColor, sin(PI*2*backgroundColorPulseMillis / 1000 / kBackgroundSecondsPerPulse) / 2 + 0.5);
+    return background;
   }
 }
