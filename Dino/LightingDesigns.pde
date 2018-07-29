@@ -318,16 +318,16 @@ class Physics extends LightingDesign {
   Model model;
   color lastColor = #000000;
   color backgroundColorHead = #222222;
-  color backgroundColorEye = #5D5F00;
-  color backgroundColorNose = #5D5F00;
-  color backgroundColorMouth = #5F0000;
+  color backgroundColorEye;
+  color backgroundColorNose;
+  color backgroundColorMouth;
   float backgroundColorPulseMillis = 0;
   float colorAnglePerBall;
 
   Physics() {
-    backgroundColorEye = lerpColor(DinoModel.kEyeColor, #000000, 0.7);
-    backgroundColorNose = lerpColor(DinoModel.kNoseColor, #000000, 0.7);
-    backgroundColorMouth = lerpColor(DinoModel.kMouthColor, #000000, 0.7);
+    backgroundColorEye = lerpColor(DinoModel.kEyeColor, #000000, 0);
+    backgroundColorNose = lerpColor(DinoModel.kNoseColor, #000000, 0.6);
+    backgroundColorMouth = lerpColor(DinoModel.kMouthColor, #000000, 0.6);
   }
   void init(Model m) {
     model = m;
@@ -429,21 +429,19 @@ class Physics extends LightingDesign {
 
   // Called to get color in current state - can be called before update().
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
-    color backgroundColor = backgroundColorHead;
-    if (type == ModelLineType.EYE) {
-      backgroundColor =  backgroundColorEye;
-    } else if (type == ModelLineType.NOSE) {
-      backgroundColor =  backgroundColorNose;
-    } else if (type == ModelLineType.MOUTH) {
-      backgroundColor =  backgroundColorMouth;
-    }
     for (Dot d : dots) {
       float distance = abs(position.z - d.position);
       if (distance < d.radius) {
         return d.c;
       }
     }
-    color background = lerpColor(#000000, backgroundColor, sin(PI*2*backgroundColorPulseMillis / 1000 / kBackgroundSecondsPerPulse) / 2 + 0.5);
+    color backgroundColor = type.c;
+    if (type == ModelLineType.HEAD) {
+      backgroundColor = lerpColor(backgroundColor, #000000, 0.8);
+    }
+    color backgroundColorBright = lerpColor(backgroundColor, #000000, 0.3);
+    color backgroundColorDark = lerpColor(backgroundColor, #000000, 0.7);
+    color background = lerpColor(backgroundColorDark, backgroundColorBright, sin(PI*2*backgroundColorPulseMillis / 1000 / kBackgroundSecondsPerPulse) / 2 + 0.5);
     return background;
   }
 }
@@ -459,7 +457,7 @@ class GrowingSpheres extends LightingDesign {
     color c;
   }
 
-  color currentColor;
+  color currentColor = DinoModel.kBodyColor;
 
   Vec3 sphereCenter;
   float maxRadius;
@@ -475,7 +473,7 @@ class GrowingSpheres extends LightingDesign {
     if (!spheres.isEmpty()) {
       s.c = randomDifferentAccentColor(spheres.get(0).c);
     } else {
-      s.c = randomAccentColor();
+      s.c = randomDifferentAccentColor(currentColor);
     }
     return s;
   }
@@ -484,11 +482,22 @@ class GrowingSpheres extends LightingDesign {
     colorMode(HSB, 100);
     sphereCenter = getModelCenter(m);
     maxRadius = getModelMaxSize(m) / 2;
-
-    currentColor = randomAccentColor();
     spheres.add(createSphere());
+    if (m instanceof DinoModel) {
+      sphereCenter.x = 275.95;
+    }
   }
   void onCycleStart() {
+  }
+
+  boolean supportsEyeColors() { 
+    return true;
+  }
+  boolean supportsNoseColors() { 
+    return true;
+  }
+  boolean supportsMouthColors() { 
+    return true;
   }
 
   void update(long millis) {
@@ -515,18 +524,23 @@ class GrowingSpheres extends LightingDesign {
 
   color getColor(int strip, int led, Vec3 pos, ModelLineType type) {
     float distance = pos.sub(sphereCenter).length();
-
+    color c = currentColor;
     for (Sphere s : spheres) {
-      if (distance < s.radius)
-        return s.c;
+      if (distance < s.radius) {
+        c =  s.c;
+        break;
+      }
     }
-    return currentColor;
+    if (type != ModelLineType.HEAD) {
+      c = lerpColor(c, type.c, 0.7);
+    }
+    return c;
   }
 }
 
 class Dots extends LightingDesign {
   final int kMillisPerDotMove = 80;
-  final float kDotChancePerPixel = 0.1f;
+  final float kDotChancePerPixel = 0.2f;
 
   int[][] dots;
 
@@ -557,7 +571,7 @@ class Dots extends LightingDesign {
       }
     }
   }
-  
+
   boolean supportsEyeColors() { 
     return true;
   }
