@@ -432,7 +432,11 @@ class Physics extends LightingDesign {
     for (Dot d : dots) {
       float distance = abs(position.z - d.position);
       if (distance < d.radius) {
-        return d.c;
+        if (type == ModelLineType.HEAD) {
+          return d.c;
+        } else {
+          return lerpColor(d.c, #FFFFFF, 0.4);
+        }
       }
     }
     color backgroundColor = type.c;
