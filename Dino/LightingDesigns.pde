@@ -251,6 +251,16 @@ class Pulse extends LightingDesign {
     blackColor = color(hue(blackColor), saturation(blackColor), 20);
   }
 
+  boolean supportsEyeColors() {
+    return true;
+  }
+  boolean supportsNoseColors() {
+    return true;
+  }
+  boolean supportsMouthColors() {
+    return true;
+  }
+
   void onCycleStart() {
     // Start with a full color
     lerpValue = 0;
@@ -273,10 +283,16 @@ class Pulse extends LightingDesign {
     if (effectiveLerp > 1) {
       effectiveLerp = effectiveLerp - 1;
     }
+    color nextColorOrType = nextColor;
+    color currentColorOrType = currentColor;
+    if (type != ModelLineType.HEAD) {
+      currentColorOrType = type.c;
+      nextColorOrType = type.c;
+    }
     if (lerpValue <= 1) {
-      return lerpColor(currentColor, blackColor, smoothToWave(effectiveLerp));
+      return lerpColor(currentColorOrType, blackColor, smoothToWave(effectiveLerp));
     } else {
-      return lerpColor(blackColor, nextColor, smoothToWave(effectiveLerp));
+      return lerpColor(blackColor, nextColorOrType, smoothToWave(effectiveLerp));
     }
   }
 }
@@ -338,7 +354,6 @@ class Physics extends LightingDesign {
     }
     return false;
   }
-
 
   boolean supportsEyeColors() { 
     return true;
