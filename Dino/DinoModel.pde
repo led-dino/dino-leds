@@ -3,8 +3,13 @@ static class DinoModel implements Model {
   final int kStripLengthInCM = 500;
   final int kNumLedsPerStrip = 300;
   final float kLedSeparationInCM = kStripLengthInCM *1f / kNumLedsPerStrip;
+  
+  public static final color kEyeColor = #FCFF7C;
+  public static final color kNoseColor = #FCFF7C;
+  public static final color kMouthColor = #FF3639;
+  public static final color kBodyColor = #20D32A;
 
-  public static final int[] kStripOffsets = {
+  public static final int[] kHeadStripOffsets = {
     // red
     50, 
     // orange  
@@ -39,7 +44,7 @@ static class DinoModel implements Model {
     0
   };
 
-  public static final Vec3[][] kStripLines = {
+  public static final Vec3[][] kHeadStripLines = {
     // red
     {new Vec3(265, 98, 0), new Vec3(234, 195, 145), new Vec3(316, 26, 164), new Vec3(350, 209, 222)}, 
     // orange  
@@ -72,62 +77,73 @@ static class DinoModel implements Model {
     {new Vec3(17, 727.6, 0), new Vec3(137.2, 663.7, 213.46), new Vec3(120.1, 557.8, 0)}, 
     // dash dark purple
     {new Vec3(137.2, 663.7, 213.46), new Vec3(275.9, 482.1, 81.54), new Vec3(120.1, 557.8, 0)}, 
+  };
 
+  public static Vec3[][] kEyeStrips = new Vec3[][] {
+    {new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11)}, 
+    {new Vec3(275.95, 482.1, 81.54), new Vec3(212.4, 646.2, 219.3), new Vec3(270.6, 665.6, 337.11), new Vec3(275.95, 482.11, 345.38)}
+  };
+
+  public static Vec3[][] kMouthStrips = new Vec3[][] {
+    {new Vec3(265.66, 98, 0), new Vec3(316.5, 26.7, 164.57), new Vec3(500.382, 10.34, 213.49),  new Vec3(684.32, 26.6, 164.5)},
+    {new Vec3(735.1, 98, 0),  new Vec3(684.32, 26.6, 164.5), new Vec3(500.382, 10.34, 213.49), new Vec3(316.5, 26.7, 164.57)}
+  };
+  
+  public static Vec3[][] kNoseStrips = new Vec3[][] {
+    {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56)}
   };
 
   public static final ModelDebugLine[] debugLines = new ModelDebugLine[] {
-    new ModelDebugLine(#909000, new Vec3[] {new Vec3(212.4, 646.2, 219.3), new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11), new Vec3(212.4, 646.2, 219.3)}),
-    new ModelDebugLine(#909000, new Vec3[] {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58)}),
-    new ModelDebugLine(#880000, new Vec3[] {new Vec3(265.66, 98, 0), new Vec3(316.5, 26.7, 164.57), new Vec3(500.382, 10.34, 213.49)/*, new Vec3(684.32, 26.6, 164.5), new Vec3(735.1, 98, 0)*/})
+    // Eye strips
+    //new ModelDebugLine(#909000, new Vec3[] {new Vec3(212.4, 646.2, 219.3), new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11), new Vec3(212.4, 646.2, 219.3)}), 
+    // 
+    //new ModelDebugLine(#909000, new Vec3[] {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58)}), 
+    //
+    //new ModelDebugLine(#880000, new Vec3[] {new Vec3(265.66, 98, 0), new Vec3(316.5, 26.7, 164.57), new Vec3(500.382, 10.34, 213.49), new Vec3(684.32, 26.6, 164.5)/*, new Vec3(735.1, 98, 0)*/})
   };
 
   Vec3 min = new Vec3();
   Vec3 max = new Vec3();
-  Vec3[][] ledPositions = new Vec3[kStripLines.length][kNumLedsPerStrip];
+
+  ModelLine[] lines;
 
   DinoModel() {
-    assert(kNumStrips == kStripLines.length);
-    assert(kNumStrips == kStripOffsets.length);
+    assert(kNumStrips == kHeadStripLines.length);
+    assert(kNumStrips == kHeadStripOffsets.length);
     calculateLedPositions();
     calculateMinAndMax();
   }
 
   void calculateLedPositions() {
     // The walks the led strips, and creates a position every kLedSeparationInCM cm.
-    for (int stripNum = 0; stripNum < kStripLines.length; stripNum++) {
-      Vec3[] points = kStripLines[stripNum];
-      float[] lengths = new float[points.length-1];
-      for (int i = 0; i < points.length - 1; i++) {
-        lengths[i] = points[i].sub(points[i+1]).length();
-      }
-      float carryOverLength = kStripOffsets[stripNum];
-      int pointNum = 0;
-      for (int i = 0; i< lengths.length; ++i) {
-        float lengthSoFar = 0;
-        Vec3 normal = points[i+1].sub(points[i]);
-        normal.mulLocal(1f / normal.length());
-        Vec3 current = new Vec3(points[i]);
-        current.addLocal(normal.mul(carryOverLength));
-        lengthSoFar = carryOverLength;
-        normal.mulLocal(kLedSeparationInCM);
-        do {
-          ledPositions[stripNum][pointNum] = new Vec3(current.x, current.y, current.z);
-          pointNum++;
-          lengthSoFar += kLedSeparationInCM;
-          current.addLocal(normal);
-        } while ((i == lengths.length - 1 || lengthSoFar < lengths[i]) && pointNum < kNumLedsPerStrip);
-        if (pointNum >= kNumLedsPerStrip)
-          break;
-        carryOverLength = lengthSoFar - lengths[i];
-      }
+    List<ModelLine> linesList = new ArrayList<ModelLine>();
+    for (int i = 0; i < kHeadStripLines.length; i++) {
+      Vec3[] points = kHeadStripLines[i];
+      linesList.add(createLedStripLine(points, kHeadStripOffsets[i], kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.HEAD));
     }
+    for (int i = 0; i < kEyeStrips.length; i++) {
+      Vec3[] points = kEyeStrips[i];
+      linesList.add(createLedStripLine(points, 0, kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.EYE));
+    }
+    
+    for (int i = 0; i < kMouthStrips.length; i++) {
+      Vec3[] points = kMouthStrips[i];
+      linesList.add(createLedStripLine(points, 0, kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.MOUTH));
+    }
+
+    for (int i = 0; i < kNoseStrips.length; i++) {
+      Vec3[] points = kNoseStrips[i];
+      linesList.add(createLedStripLine(points, 0, kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.NOSE));
+    }
+    
+    lines = linesList.toArray(new ModelLine[0]);
   }
 
   void calculateMinAndMax() {
     min.set(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
     max.set(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
-    for (Vec3[] strip : ledPositions) {
-      for (Vec3 point : strip) {
+    for (ModelLine strip : lines) {
+      for (Vec3 point : strip.ledPoints) {
         min.x = min(min.x, point.x);
         min.y = min(min.y, point.y);
         min.z = min(min.z, point.z);
@@ -138,22 +154,24 @@ static class DinoModel implements Model {
     }
   }
 
+  ModelLine[] getLines() {
+    return lines;
+  }
+
   ModelDebugLine[] getDebugLines() {
     return debugLines;
   }
 
-  int getNumStrips() {
-    return kNumStrips;
-  }
-  int getNumLedsPerStrip() {
+  int getMaxLedsOnLines() {
     return kNumLedsPerStrip;
   }
 
-  Vec3[] getLedLocations(int stripNum) {
-    return ledPositions[stripNum];
+  Vec3 getMin() {
+    return min;
   }
-  Vec3[] getStripLinePoints(int stripNum) {
-    return kStripLines[stripNum];
+
+  Vec3 getMax() {
+    return max;
   }
 
   float getMinX() {

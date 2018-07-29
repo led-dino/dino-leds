@@ -17,8 +17,6 @@ final float kSimpleDrawScale = 5;
 // Transition params.
 final int kCycleTimeMillis = 60*1000;
 final float kSecondsForTransition = 5;
-boolean beat = false;
-boolean oldBeat = false;
 
 Model model = new DinoModel();
 
@@ -44,12 +42,15 @@ boolean drawModelFrame = false;
 final color BLACK = color(0);
 DeviceRegistry registry;
 StripObserver stripObserver;
+boolean beat = false;
+boolean oldBeat = false;
+boolean stopping = false;
 
 long lastTimeUpdate = 0;
 
 void settings() {
   if (kSimpleDraw) {
-    size((int)(model.getNumLedsPerStrip() * kSimpleDrawScale), (int)(model.getNumStrips() * kSimpleDrawScale));
+    size((int)(model.getMaxLedsOnLines() * kSimpleDrawScale), (int)(model.getLines().length * kSimpleDrawScale));
   } else {
     // to have full screen, uncomment the below line and comment out the 'size' call.
     fullScreen(P3D);
@@ -138,12 +139,11 @@ void drawDebug() {
   drawGround();
 
   if (drawModelFrame) {
-    for (int i= 0; i<model.getNumStrips(); ++i) {
-      Vec3[] points = model.getStripLinePoints(i);
+    for (ModelLine l : model.getLines()) {
       noFill();
       stroke(255);
       beginShape();
-      for (Vec3 p : points) {
+      for (Vec3 p : l.points) {
         vertex(p.x, p.y, p.z);
       }
       endShape();
@@ -151,10 +151,10 @@ void drawDebug() {
   }
 
   sphereDetail(3);
-  for (int strip = 0; strip < model.getNumStrips(); ++strip) {
-    Vec3[] stripPoints = model.getLedLocations(strip);
-    for (int ledNum = 0; ledNum < stripPoints.length; ++ledNum) {
-      Vec3 position = stripPoints[ledNum];
+  for (int strip = 0; strip < model.getLines().length; ++strip) {
+    ModelLine line = model.getLines()[strip];
+    for (int ledNum = 0; ledNum < line.ledPoints.length; ++ledNum) {
+      Vec3 position = line.ledPoints[ledNum];
       color c = getColorForStripLed(strip, ledNum);
       stroke(c);
       fill(c);
@@ -176,20 +176,54 @@ void drawDebug() {
 }
 
 color getColorForStripLed(int strip, int led) {
-  Vec3 position = model.getLedLocations(strip)[led];
-  color newColor = designs[currentDesign].getColor(strip, led, position);
+  Vec3 position = model.getLines()[strip].ledPoints[led];
+  ModelLineType type = model.getLines()[strip].type;
+  LightingDesign current = designs[currentDesign];
+  color newColor = getStripColorOrDefaultColor(current, strip, led, position, type);
   if (!transitioning)
     return newColor;
-  color oldColor = oldDesign.getColor(strip, led, position);
+  color oldColor = getStripColorOrDefaultColor(oldDesign, strip, led, position, type);
   return lerpColor(oldColor, newColor, transitionPercent);
+}
+
+color getStripColorOrDefaultColor(LightingDesign design, int strip, int ledNum, Vec3 position, ModelLineType type) {
+  color newColor = #AAAAAA;
+  switch (type) {
+  case HEAD:
+    newColor = design.getColor(strip, ledNum, position, type);
+    break;
+  case EYE:
+    if (design.supportsEyeColors()) {
+      newColor = design.getColor(strip, ledNum, position, type);
+    } else {
+      newColor = DinoModel.kEyeColor;
+    }
+    break;
+  case MOUTH:
+    if (design.supportsMouthColors()) {
+      newColor = design.getColor(strip, ledNum, position, type);
+    } else {
+      newColor = DinoModel.kMouthColor;
+    }
+    break;
+  case NOSE:
+    if (design.supportsMouthColors()) {
+      newColor = design.getColor(strip, ledNum, position, type);
+    } else {
+      newColor = DinoModel.kNoseColor;
+    }
+    break;
+  }
+  return newColor;
 }
 
 void drawSimple() {
   background(0);
   pushMatrix();
   scale(kSimpleDrawScale * 1f / 2);
-  for (int i = 0; i <model.getNumStrips(); i++) {
-    for (int j = 0; j< model.getLedLocations(i).length; j++) {
+  for (int i = 0; i <model.getLines().length; i++) {
+    ModelLine line = model.getLines()[i];
+    for (int j = 0; j < line.ledPoints.length; j++) {
       color c = getColorForStripLed(i, j);
       stroke(c);
       fill(c);
@@ -208,11 +242,11 @@ void sendPixelsToPusher() {
 
     if (strips.size() > 0) {
       for (int i = 0; i < strips.size(); ++i) {
-        if (i >= model.getNumStrips())
+        if (i >= model.getLines().length)
           break;
         Strip strip = strips.get(i);
         for (int pixel = 0; pixel < strip.getLength(); pixel++) {
-          if (pixel >= model.getLedLocations(i).length)
+          if (pixel >= model.getLines()[i].ledPoints.length)
             break;
           strip.setPixel(getColorForStripLed(i, pixel), pixel);
         }
@@ -221,8 +255,11 @@ void sendPixelsToPusher() {
   }
 }
 void stop() {
+  stopping = true;
   registry.stopPushing();
   VirtualCdj.getInstance().stop();
+  DeviceFinder.getInstance().stop();
+  BeatFinder.getInstance().stop();
 }
 
 void drawGround() {
@@ -265,10 +302,24 @@ void drawGround() {
   popMatrix();
 }
 
+LifecycleListener cdjListener = new LifecycleListener() {
+  void started(LifecycleParticipant sender) {
+  }
+  void stopped(LifecycleParticipant sender) {
+    if (!stopping) {
+      DeviceFinder.getInstance().stop();
+      BeatFinder.getInstance().stop();
+      thread("startCdjListening");
+    }
+  }
+}; 
+
 void startCdjListening() {
   println("starting cdj");
+
+  VirtualCdj.getInstance().addLifecycleListener(cdjListener);
   try {
-    VirtualCdj.getInstance().start();
+    VirtualCdj.getInstance().startAndWaitUntilConnected(0);
   } 
   catch (java.net.SocketException e) {
     System.err.println("Unable to start VirtualCdj: " + e);
@@ -295,7 +346,7 @@ void startCdjListening() {
   BeatFinder.getInstance().addBeatListener(new BeatListener() {
     @Override
       public void newBeat(Beat b) {
-      System.out.println("got beat?");
+      System.out.println("got beat " + b);
       beat = !beat;
     }
   }

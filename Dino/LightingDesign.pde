@@ -1,12 +1,43 @@
-interface LightingDesign {
+abstract class LightingDesign {
   // Called once, first, with the model to be designed.
-  void init(Model m);
+  abstract void init(Model m);
   // Called to update movement etc, repeatedly per frame
-  void update(long millis);
-  
+  abstract void update(long millis);
+
   // Called when this design is getting transitioned to
-  void onCycleStart();
-  
+  void onCycleStart() {
+  }
+
+  boolean supportsBeatNotifications() { 
+    return false;
+  }
+  void onBeatsStart() {
+  }
+  void onBeat(int beatNumber) {
+  }
+  void onBeatsEnd() {
+  }
+
+  boolean supportsEyeColors() { 
+    return false;
+  }
+  boolean supportsNoseColors() { 
+    return false;
+  }
+  boolean supportsMouthColors() { 
+    return false;
+  }
+
   // Called to get color in current state - can be called before update().
-  color getColor(int stripNum, int ledNum, Vec3 position);   
+  abstract color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType lineType);
+
+  color getEyeColor() { 
+    return #ffffff;
+  }
+  color getNoseColor() { 
+    return #ffffff;
+  }
+  color getMouthColor() { 
+    return #ffffff;
+  }
 }
