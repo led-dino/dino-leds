@@ -19,7 +19,7 @@ boolean isRandomChancePerSecondFromMillis(long millis, float chancePerSecond) {
 
 color randomAccentColor() {
   colorMode(HSB, 100);
-  color c =color(random(100), random(70, 100), random(90, 100));
+  color c =color(random(100), random(60, 100), random(90, 100));
   return c;
 }
 
@@ -35,7 +35,7 @@ color randomDifferentAccentColor(color from) {
   color c;
   int hueDistance;
   do {
-    c =color(random(100), random(70, 100), random(90, 100));
+    c =color(random(100), random(60, 100), random(90, 100));
     hueDistance = (int) min(abs(hue(c)-hue(from)), 100 - abs(hue(c)-hue(from)));
   } while (hueDistance < 20);
   return c;

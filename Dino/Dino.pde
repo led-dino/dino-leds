@@ -22,6 +22,7 @@ Model model = new DinoModel();
 
 // Add more designs here
 LightingDesign[] designs = {
+  new DinoDebugLighting(), 
   new Physics(), 
   new Dots(), 
   new SinWaves(), 
@@ -42,9 +43,10 @@ boolean drawModelFrame = false;
 final color BLACK = color(0);
 DeviceRegistry registry;
 StripObserver stripObserver;
-boolean beat = false;
-boolean oldBeat = false;
 boolean stopping = false;
+boolean fakeBeat = false;
+
+BeatController beatController = new BeatController();
 
 long lastTimeUpdate = 0;
 
@@ -53,8 +55,8 @@ void settings() {
     size((int)(model.getMaxLedsOnLines() * kSimpleDrawScale), (int)(model.getLines().length * kSimpleDrawScale));
   } else {
     // to have full screen, uncomment the below line and comment out the 'size' call.
-    fullScreen(P3D);
-    //size(1024, 1024, P3D);
+    //fullScreen(P3D);
+    size(1024, 1024, P3D);
   }
   registry = new DeviceRegistry();
   stripObserver = new StripObserver();
@@ -79,8 +81,6 @@ void setup() {
   thread("startCdjListening");
 }
 
-boolean beatEdge = false;
-
 void draw() {
   if (autoCycle && millisLastChange + kCycleTimeMillis < millis()) {
     nextDesign();
@@ -88,19 +88,25 @@ void draw() {
   long newMillis = millis();
   long diff = newMillis - lastTimeUpdate;
   lastTimeUpdate = newMillis;
-  beatEdge = beat != oldBeat;
-  oldBeat = beat;
+
+  BeatInfo info = beatController.consumeBeat();
 
   LightingDesign design = designs[currentDesign];
-
+  if (info.beat || fakeBeat) {
+    design.onBeat();
+  }
   design.update(diff);
   if (transitioning) {
     transitionPercent += diff * 1f / 1000 / kSecondsForTransition;
     if (transitionPercent >= 1) {
       transitioning = false;
     }
+    if (info.beat || fakeBeat) {
+      oldDesign.onBeat();
+    }
     oldDesign.update(diff);
   }
+  fakeBeat = false;
 
   if (kSimpleDraw) {
     drawSimple();
@@ -115,22 +121,31 @@ void keyTyped() {
     drawModelFrame = !drawModelFrame;
   if (key == 'n' || key == 'N')
     nextDesign();
-  if (key =='a' || key == 'A')
+  if (key =='c' || key == 'C')
     autoCycle = !autoCycle;
-}
-
-
-void nextDesign() {
-  if (!transitioning) {
-    transitionPercent = 0;
-    oldDesign = designs[currentDesign];
+  if (key =='0')
+    beatController.armMode(BeatMode.NONE);
+  if (key == '1')
+    beatController.armMode(BeatMode.EVERY_BEAT);
+  if (key == '2')
+    beatController.armMode(BeatMode.EVERY_TWO_BEATS);
+  if (key == '4')
+    beatController.armMode(BeatMode.EVERY_FOUR_BEATS);
+  if (key == ' ')
+    fakeBeat = true;
   }
-  transitioning = true;
-  currentDesign++;
-  currentDesign = currentDesign % designs.length;
-  millisLastChange = millis();
-  designs[currentDesign].onCycleStart();
-}
+
+  void nextDesign() {
+    if (!transitioning) {
+      transitionPercent = 0;
+      oldDesign = designs[currentDesign];
+    }
+    transitioning = true;
+    currentDesign++;
+    currentDesign = currentDesign % designs.length;
+    millisLastChange = millis();
+    designs[currentDesign].onCycleStart();
+  }
 
 void drawDebug() {
   background(0);
@@ -273,9 +288,7 @@ void drawGround() {
   vertex(1400, 1400, 0);
   vertex(0, 1400, 0);
   endShape();
-  if (beat)
-    fill(25);
-  else fill (20);
+  fill (20);
   beginShape();
   vertex(50, 50, 1);
   vertex(1350, 50, 1);
@@ -283,7 +296,7 @@ void drawGround() {
   vertex(50, 1350, 1);
   endShape();
 
-  fill(255);
+  fill(200);
   pushMatrix();
   translate(0, 0, 11);
   rotateZ(PI/2);
@@ -295,10 +308,17 @@ void drawGround() {
   }
   text("Press 'N' for next design", 0, line);
   line+=20;
-  text("Press 'F' to toggle wireframe", 0, line);
+  text("Press 'F' to toggle wireframe " + (drawModelFrame ? "(on)" : "(off)"), 0, line);
   line+=20;
-  text("Press A to toggle auto-cycle", 0, line);
+  text("Press C to toggle cycling " + (autoCycle ? "(on)" : "(off)"), 0, line);
   line+=20;
+  text("Press 1, 2, or 4 to trigger beat changes every 1, 2, or 4 beats.", 0, line);
+  line+=20;
+  text("Press 'space' to trigger a fake beat.", 0, line);
+  line+=20;
+  text("Mode: " + beatController.getMode() + ", bars in mode: " + beatController.getBarsInMode(), 0, line);
+  line+=20;
+
   popMatrix();
 }
 
@@ -314,6 +334,7 @@ LifecycleListener cdjListener = new LifecycleListener() {
   }
 }; 
 
+
 void startCdjListening() {
   println("starting cdj");
 
@@ -327,27 +348,23 @@ void startCdjListening() {
   println("about to listen");
 
   VirtualCdj.getInstance().addMasterListener(new MasterListener() {
-    @Override
-      public void masterChanged(DeviceUpdate update) {
+    public void masterChanged(DeviceUpdate update) {
       System.out.println("Master changed at " + new Date() + ": " + update);
+      beatController.onMasterChanged(update);
     }
 
-    @Override
-      public void tempoChanged(double tempo) {
+    public void tempoChanged(double tempo) {
       System.out.println("Tempo changed at " + new Date() + ": " + tempo);
     }
 
-    @Override
-      public void newBeat(Beat beat) {
-      System.out.println("Master player beat at " + new Date() + ": " + beat);
+    public void newBeat(Beat beat) {
+      //System.out.println("Master player beat at " + new Date() + ": " + beat);
     }
   }
   );
   BeatFinder.getInstance().addBeatListener(new BeatListener() {
-    @Override
-      public void newBeat(Beat b) {
-      System.out.println("got beat " + b);
-      beat = !beat;
+    public void newBeat(Beat b) {
+      beatController.onBeat(b);
     }
   }
   );

@@ -57,7 +57,8 @@ static Vec3 getModelCenter(Model m) {
 }
 
 static float getModelMaxSize(Model m) {
-  return max(max(m.getMaxX() - m.getMinX(), m.getMaxY() - m.getMinY()), m.getMaxZ() - m.getMinZ());
+  Vec3 diff = m.getMax().sub(m.getMin());
+  return diff.length();
 }
 
 

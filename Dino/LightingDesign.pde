@@ -8,14 +8,7 @@ abstract class LightingDesign {
   void onCycleStart() {
   }
 
-  boolean supportsBeatNotifications() { 
-    return false;
-  }
-  void onBeatsStart() {
-  }
-  void onBeat(int beatNumber) {
-  }
-  void onBeatsEnd() {
+  void onBeat() {
   }
 
   boolean supportsEyeColors() { 

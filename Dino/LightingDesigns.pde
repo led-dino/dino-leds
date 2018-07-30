@@ -54,6 +54,12 @@ class SinWaves extends LightingDesign {
     speedCMPerSecond = random(kWaveSpeedCMPerSecondMin, kWaveSpeedCMPerSecondMax);
   }
 
+  void onBeat() {
+    for (Wave w : waves) {
+      w.targetColor = randomDifferentAccentColor(ModelLineType.HEAD.c);
+    }
+  }
+
   void update(long millis) {
     boolean canCreateNew = true;
     float seconds = millis * 1f / 1000;
@@ -100,10 +106,12 @@ class SinWaves extends LightingDesign {
 class ColorWave extends LightingDesign {
   final float kAdjustPercentPerSecond = 0.8;
   final float kDisconnectedColorChancePerSecond = 0.05f;
+  final float kMillisUntilBrightEyes = 500f;
   int NUM_SEGMENTS = 300;
 
   color[] waveSegments = new color[NUM_SEGMENTS];
   Model model;
+  float eyeBrightnessPercent = 1;
 
   ColorWave() {
   }
@@ -117,7 +125,20 @@ class ColorWave extends LightingDesign {
     }
   }
 
+  boolean supportsEyeColors() { 
+    return true;
+  }
+  boolean supportsNoseColors() { 
+    return true;
+  }
+  boolean supportsMouthColors() { 
+    return true;
+  }
   void onCycleStart() {
+  }
+
+  void onBeat() {
+    eyeBrightnessPercent = 0;
   }
 
   color adjustPixel(color input, long millis) {
@@ -136,6 +157,10 @@ class ColorWave extends LightingDesign {
   }
 
   void update(long millis) {
+    if (eyeBrightnessPercent < 1)
+      eyeBrightnessPercent += millis * 1f / kMillisUntilBrightEyes;
+    if (eyeBrightnessPercent > 1)
+      eyeBrightnessPercent = 1;
     color adjustedColor = adjustPixel(waveSegments[0], millis);
     for (int i = waveSegments.length - 1; i >= 0; --i) {
       if (i == 0)
@@ -146,13 +171,18 @@ class ColorWave extends LightingDesign {
   }
 
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
-    int transformedY = (int)map(position.y, model.getMinY(), model.getMaxY(), 0, waveSegments.length-1);
-    return waveSegments[transformedY];
+    if (type == ModelLineType.HEAD) {
+      int transformedY = (int)map(position.y, model.getMinY(), model.getMaxY(), 0, waveSegments.length-1);
+      return waveSegments[transformedY];
+    }
+    colorMode(HSB, 1);
+    return color(hue(type.c), saturation(type.c), eyeBrightnessPercent);
   }
 }
 
 class Rain extends LightingDesign {
   final float kRainChancePerSecond = 0.6;
+  final float kMillisUntilBrightEyes = 500f;
 
   Model model;
   color backgroundColorA;
@@ -160,11 +190,13 @@ class Rain extends LightingDesign {
   float backgroundLerpAngle = 0;
 
   color rainColor;
+  int rainDirection = -1;
 
   final int kRainSpaceMin = 0;
   final int kRainSpaceMax = 300;
   Set<Integer> rainsA = new HashSet<Integer>();
   Set<Integer> rainsB = new HashSet<Integer>();
+  float eyeBrightnessPercent = 1;
 
   Rain() {
   }
@@ -178,37 +210,57 @@ class Rain extends LightingDesign {
     rainColor = color(hue(between), saturation(between), brightness(between) - 10);
   }
 
-  void onCycleStart() {
+  boolean supportsEyeColors() { 
+    return true;
+  }
+  boolean supportsNoseColors() { 
+    return true;
+  }
+  boolean supportsMouthColors() { 
+    return true;
+  }
+
+  void onBeat() {
+    eyeBrightnessPercent = 0;
+    rainDirection = -rainDirection;
   }
 
   void update(long millis) {
+    if (eyeBrightnessPercent < 1)
+      eyeBrightnessPercent += millis * 1f / kMillisUntilBrightEyes;
+    if (eyeBrightnessPercent > 1)
+      eyeBrightnessPercent = 1;
     backgroundLerpAngle += 0.04;
     Set<Integer> newRainsA = new HashSet();
     for (int rain : rainsA) {
-      rain--;
+      rain += rainDirection;
       if (rain < 0)
         continue;
       newRainsA.add(rain);
     }
     rainsA = newRainsA;
     if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
-      rainsA.add(kRainSpaceMax);
+      rainsA.add((int)random(model.getMinZ(), model.getMaxZ()));
     }
 
     Set<Integer> newRainsB = new HashSet();
     for (int rain : rainsB) {
-      rain--;
+      rain += rainDirection;
       if (rain < 0)
         continue;
       newRainsB.add(rain);
     }
     rainsB = newRainsB;
     if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
-      rainsB.add(kRainSpaceMax);
+      rainsB.add((int)random(model.getMinZ(), model.getMaxZ()));
     }
   }
 
   color getColor(int strip, int led, Vec3 pos, ModelLineType type) {
+    if (type != ModelLineType.HEAD) {
+      colorMode(HSB, 1);
+      return color(hue(type.c), saturation(type.c), eyeBrightnessPercent);
+    }
     int rainPos = (int) map(pos.z, model.getMinZ(), model.getMaxZ(), kRainSpaceMin, kRainSpaceMax);
 
     color background = lerpColor(backgroundColorA, backgroundColorB, 0.5f + cos(backgroundLerpAngle)/2);
@@ -261,6 +313,11 @@ class Pulse extends LightingDesign {
     return true;
   }
 
+  void onBeat() {
+    currentColor = randomAccentColorWhiter();
+    nextColor = randomAccentColorWhiter();
+  }
+
   void onCycleStart() {
     // Start with a full color
     lerpValue = 0;
@@ -299,21 +356,27 @@ class Pulse extends LightingDesign {
 
 class Physics extends LightingDesign {
   final float kBallMinRadius = 4;
-  final float kBalls = 10;
+  final float kBars = 10;
   final float kGravity = 0;
   final float kMaxVelocity = 50;
   final float kBackgroundSecondsPerPulse = 10;
 
-  class Dot {
+  class Bar implements Comparable<Bar> {
     float position;
     float velocity;
     float force;
     float mass;
     float radius;
     color c;
+
+    int compareTo(Bar other) {
+      if (position == other.position)
+        return 0;
+      return position < other.position ? -1 : 1;
+    }
   }
 
-  List<Dot> dots = new ArrayList<Dot>();
+  List<Bar> bars = new ArrayList<Bar>();
   float maxRadius;
   Model model;
   color lastColor = #000000;
@@ -332,8 +395,8 @@ class Physics extends LightingDesign {
   void init(Model m) {
     model = m;
     // Max of half the space should be filled with stripes.
-    maxRadius = (m.getMaxZ() - m.getMinZ()) / kBalls / 4;
-    colorAnglePerBall = 100f / (kBalls + 1);
+    maxRadius = (m.getMaxZ() - m.getMinZ()) / kBars / 4;
+    colorAnglePerBall = 100f / (kBars + 1);
   }
 
   color getNextColor() {
@@ -346,8 +409,8 @@ class Physics extends LightingDesign {
     return lastColor;
   }
 
-  boolean doesDotIntersectOthers(float position, float radius) {
-    for (Dot d : dots) {
+  boolean doesBarIntersectOthers(float position, float radius) {
+    for (Bar d : bars) {
       float distance = abs(d.position - position) - (d.radius + radius);
       if (distance < 0)
         return true;
@@ -369,40 +432,50 @@ class Physics extends LightingDesign {
   void onCycleStart() {
     backgroundColorPulseMillis = 0;
     colorMode(HSB, 100);
-    dots = new ArrayList<Dot>();
-    for (int i = 0; i < kBalls; ++i) {
-      Dot dot = new Dot();
+    bars = new ArrayList<Bar>();
+    for (int i = 0; i < kBars; ++i) {
+      Bar dot = new Bar();
       dot.radius = random(kBallMinRadius, maxRadius);
       dot.mass = dot.radius * dot.radius * PI;
       dot.c = getNextColor();
       dot.velocity = random(-kMaxVelocity, kMaxVelocity);
       do {
         dot.position = random(model.getMinZ() + dot.radius, model.getMaxZ() - dot.radius);
-      } while (doesDotIntersectOthers(dot.position, dot.radius));
-      dots.add(dot);
+      } while (doesBarIntersectOthers(dot.position, dot.radius));
+      bars.add(dot);
+    }
+    Collections.sort(bars);
+  }
+
+  void onBeat() {
+    color lastColor = bars.get(bars.size() - 1).c;
+    for (Bar b : bars) {
+      color c = b.c;
+      b.c = lastColor;
+      lastColor = c;
     }
   }
 
   void update(long millis) {
     backgroundColorPulseMillis += millis;
     float dt = millis * 1f / 1000;
-    for (Dot d : dots) {
+    for (Bar d : bars) {
       d.velocity += dt * (kGravity  + 1f/d.mass * d.force);
       d.position += dt * d.velocity;
       d.force = 0;
     }
 
     for (int iteration = 0; iteration < 3; ++iteration) {
-      for (int i = 0; i < dots.size(); ++i) {
-        Dot a = dots.get(i);
+      for (int i = 0; i < bars.size(); ++i) {
+        Bar a = bars.get(i);
 
-        for (int j = i + 1; j < dots.size(); ++j) {
-          Dot b = dots.get(j);
+        for (int j = i + 1; j < bars.size(); ++j) {
+          Bar b = bars.get(j);
           float distance = abs(b.position - a.position) - (a.radius + b.radius);
           if (distance < 0) {
             // Push them apart
-            Dot top = a.position > b.position ? a : b;
-            Dot bottom = a.position < b.position ? a : b;
+            Bar top = a.position > b.position ? a : b;
+            Bar bottom = a.position < b.position ? a : b;
             top.position -= distance / 2;
             bottom.position += distance / 2;
 
@@ -429,7 +502,7 @@ class Physics extends LightingDesign {
 
   // Called to get color in current state - can be called before update().
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
-    for (Dot d : dots) {
+    for (Bar d : bars) {
       float distance = abs(position.z - d.position);
       if (distance < d.radius) {
         if (type == ModelLineType.HEAD) {
@@ -491,8 +564,18 @@ class GrowingSpheres extends LightingDesign {
       sphereCenter.x = 275.95;
     }
   }
-  void onCycleStart() {
+
+  void onBeat() {
+    color last = currentColor;
+    currentColor = randomDifferentAccentColor(last);
+    for (int i = spheres.size() - 1; i >= 0; --i) {
+      Sphere s = spheres.get(i);
+      color c = s.c;
+      s.c = last;
+      last = c;
+    }
   }
+
 
   boolean supportsEyeColors() { 
     return true;
@@ -512,7 +595,7 @@ class GrowingSpheres extends LightingDesign {
         spheres.remove(i);
         --i;
       }
-      if (lastRadius > maxRadius) {
+      if (s.radius > maxRadius) {
         spheres.remove(i);
         --i;
         currentColor = s.c;
@@ -554,7 +637,6 @@ class Dots extends LightingDesign {
 
   Dots() {
     black = #000000;
-    dotColor = #00F501;
   }
 
   void init(Model m) {
@@ -564,6 +646,7 @@ class Dots extends LightingDesign {
   }
 
   void initDots() {
+    dotColor = DinoModel.kBodyColor;
     for (int i = 0; i < dots.length; ++i) {
       for (int j = 0; j < dots[i].length; ++j) {
         if (random(1) > kDotChancePerPixel) {
@@ -574,6 +657,10 @@ class Dots extends LightingDesign {
         }
       }
     }
+  }
+
+  void onBeat() {
+    dotColor = randomDifferentAccentColor(dotColor);
   }
 
   boolean supportsEyeColors() { 
