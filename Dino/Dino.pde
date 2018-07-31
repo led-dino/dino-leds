@@ -55,8 +55,8 @@ void settings() {
     size((int)(model.getMaxLedsOnLines() * kSimpleDrawScale), (int)(model.getLines().length * kSimpleDrawScale));
   } else {
     // to have full screen, uncomment the below line and comment out the 'size' call.
-    //fullScreen(P3D);
-    size(1024, 1024, P3D);
+    fullScreen(P3D);
+    //size(1024, 1024, P3D);
   }
   registry = new DeviceRegistry();
   stripObserver = new StripObserver();
@@ -174,7 +174,7 @@ void drawDebug() {
       stroke(c);
       fill(c);
       translate(position.x, position.y, position.z);
-      sphere(0.5f);
+      sphere(1);
       translate(-position.x, -position.y, -position.z);
     }
   }

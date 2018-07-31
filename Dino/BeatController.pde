@@ -67,7 +67,7 @@ static class BeatController {
       if (!beat.isBeatWithinBarMeaningful()) {
         onBeatNumberUntrustworty();
       } else {
-        if (!beatNumberUntrustworty) {
+        if (beatNumberUntrustworty) {
           println("Beat number now considered trustworthy");
         }
         beatNumberUntrustworty = false;

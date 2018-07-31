@@ -197,6 +197,7 @@ class Rain extends LightingDesign {
   Set<Integer> rainsA = new HashSet<Integer>();
   Set<Integer> rainsB = new HashSet<Integer>();
   float eyeBrightnessPercent = 1;
+  boolean hasBeats = false;
 
   Rain() {
   }
@@ -220,7 +221,12 @@ class Rain extends LightingDesign {
     return true;
   }
 
+  void onCycleStart() {
+    hasBeats = false;
+  }
+
   void onBeat() {
+    hasBeats = true;
     eyeBrightnessPercent = 0;
     rainDirection = -rainDirection;
   }
@@ -240,7 +246,11 @@ class Rain extends LightingDesign {
     }
     rainsA = newRainsA;
     if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
-      rainsA.add((int)random(model.getMinZ(), model.getMaxZ()));
+      if (hasBeats) {
+        rainsA.add((int)random(kRainSpaceMin, kRainSpaceMax));
+      } else {
+        rainsA.add(kRainSpaceMax);
+      }
     }
 
     Set<Integer> newRainsB = new HashSet();
@@ -252,7 +262,11 @@ class Rain extends LightingDesign {
     }
     rainsB = newRainsB;
     if (isRandomChancePerSecondFromMillis(millis, kRainChancePerSecond)) {
-      rainsB.add((int)random(model.getMinZ(), model.getMaxZ()));
+      if (hasBeats) {
+        rainsB.add((int)random(kRainSpaceMin, kRainSpaceMax));
+      } else {
+        rainsB.add(kRainSpaceMax);
+      }
     }
   }
 
