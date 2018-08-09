@@ -204,7 +204,7 @@ color getColorForStripLed(int strip, int led) {
 color getStripColorOrDefaultColor(LightingDesign design, int strip, int ledNum, Vec3 position, ModelLineType type) {
   color newColor = #AAAAAA;
   switch (type) {
-  case HEAD:
+  case BODY:
     newColor = design.getColor(strip, ledNum, position, type);
     break;
   case EYE:

@@ -79,6 +79,8 @@ static class DinoModel implements Model {
     {new Vec3(137.2, 663.7, 213.46), new Vec3(275.9, 482.1, 81.54), new Vec3(120.1, 557.8, 0)}, 
   };
 
+  public static final int kAccentStripNum = 5;
+  
   public static Vec3[][] kEyeStrips = new Vec3[][] {
     {new Vec3(275.95, 482.1, 81.54), new Vec3(212.4, 646.2, 219.3), new Vec3(270.6, 665.6, 337.11), new Vec3(275.95, 482.11, 345.38)},
     {new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11)}
@@ -91,6 +93,15 @@ static class DinoModel implements Model {
 
   public static Vec3[][] kNoseStrips = new Vec3[][] {
     {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56)}
+  };
+  
+  public static Vec3[][] kRibStrips = new Vec3[][] {
+    {new Vec3(402.8, 212, 0), new Vec3(422.8, 262, 235), new Vec3(442.8, 212, 0)},
+    {new Vec3(402.8, 577, 0), new Vec3(422.8, 537, 235), new Vec3(442.8, 577, 0)},
+    {new Vec3(402.8, 942, 0), new Vec3(422.8, 892, 235), new Vec3(442.8, 942, 0)},
+    {new Vec3(555.2, 212, 0), new Vec3(575.2, 262, 235), new Vec3(595.2, 212, 0)},
+    {new Vec3(555.2, 577, 0), new Vec3(575.2, 537, 235), new Vec3(595.2, 577, 0)},
+    {new Vec3(555.2, 942, 0), new Vec3(575.2, 892, 235), new Vec3(595.2, 942, 0)},
   };
 
   public static final ModelDebugLine[] debugLines = new ModelDebugLine[] {};
@@ -112,7 +123,7 @@ static class DinoModel implements Model {
     List<ModelLine> linesList = new ArrayList<ModelLine>();
     for (int i = 0; i < kHeadStripLines.length; i++) {
       Vec3[] points = kHeadStripLines[i];
-      linesList.add(createLedStripLine(points, kHeadStripOffsets[i], kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.HEAD));
+      linesList.add(createLedStripLine(points, kHeadStripOffsets[i], kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.BODY));
     }
     for (int i = 0; i < kEyeStrips.length; i++) {
       Vec3[] points = kEyeStrips[i];
@@ -127,6 +138,11 @@ static class DinoModel implements Model {
     for (int i = 0; i < kNoseStrips.length; i++) {
       Vec3[] points = kNoseStrips[i];
       linesList.add(createLedStripLine(points, 0, kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.NOSE));
+    }
+    
+    for (int i = 0; i < kRibStrips.length; i++) {
+      Vec3[] points = kRibStrips[i];
+      linesList.add(createLedStripLine(points, 0, 150, 500f / 150, ModelLineType.BODY));
     }
 
     lines = linesList.toArray(new ModelLine[0]);
@@ -228,6 +244,9 @@ class DinoDebugLighting extends LightingDesign {
     if (stripNum < DinoModel.kHeadStripLines.length)
       return stripColors[stripNum % 8];
     stripNum -=DinoModel.kHeadStripLines.length;
+    if (stripNum < DinoModel.kAccentStripNum)
+      return stripColors[stripNum];
+    stripNum -=DinoModel.kAccentStripNum;
     return stripColors[stripNum];
   }
 }

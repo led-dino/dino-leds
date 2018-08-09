@@ -9,7 +9,7 @@ static class ModelDebugLine {
 }
 
 static enum ModelLineType {
-  HEAD(DinoModel.kBodyColor), EYE(DinoModel.kEyeColor), NOSE(DinoModel.kNoseColor), MOUTH(DinoModel.kMouthColor);
+  BODY(DinoModel.kBodyColor), EYE(DinoModel.kEyeColor), NOSE(DinoModel.kNoseColor), MOUTH(DinoModel.kMouthColor);
   
   public color c;
   

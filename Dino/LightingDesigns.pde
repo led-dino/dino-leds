@@ -39,7 +39,7 @@ class SinWaves extends LightingDesign {
     Wave w = new Wave();
     w.size = random(kMinWaveSize, kMaxWaveSize);
     w.position = -w.size;
-    w.targetColor = randomDifferentAccentColor(ModelLineType.HEAD.c);
+    w.targetColor = randomDifferentAccentColor(ModelLineType.BODY.c);
     return w;
   }
 
@@ -56,7 +56,7 @@ class SinWaves extends LightingDesign {
 
   void onBeat() {
     for (Wave w : waves) {
-      w.targetColor = randomDifferentAccentColor(ModelLineType.HEAD.c);
+      w.targetColor = randomDifferentAccentColor(ModelLineType.BODY.c);
     }
   }
 
@@ -171,7 +171,7 @@ class ColorWave extends LightingDesign {
   }
 
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
-    if (type == ModelLineType.HEAD) {
+    if (type == ModelLineType.BODY) {
       int transformedY = (int)map(position.y, model.getMinY(), model.getMaxY(), 0, waveSegments.length-1);
       return waveSegments[transformedY];
     }
@@ -181,7 +181,7 @@ class ColorWave extends LightingDesign {
 }
 
 class Rain extends LightingDesign {
-  final float kRainChancePerSecond = 0.6;
+  final float kRainChancePerSecond = 0.65;
   final float kMillisUntilBrightEyes = 500f;
 
   Model model;
@@ -271,7 +271,7 @@ class Rain extends LightingDesign {
   }
 
   color getColor(int strip, int led, Vec3 pos, ModelLineType type) {
-    if (type != ModelLineType.HEAD) {
+    if (type != ModelLineType.BODY) {
       colorMode(HSB, 1);
       return color(hue(type.c), saturation(type.c), eyeBrightnessPercent);
     }
@@ -356,7 +356,7 @@ class Pulse extends LightingDesign {
     }
     color nextColorOrType = nextColor;
     color currentColorOrType = currentColor;
-    if (type != ModelLineType.HEAD) {
+    if (type != ModelLineType.BODY) {
       currentColorOrType = type.c;
       nextColorOrType = type.c;
     }
@@ -519,7 +519,7 @@ class Physics extends LightingDesign {
     for (Bar d : bars) {
       float distance = abs(position.z - d.position);
       if (distance < d.radius) {
-        if (type == ModelLineType.HEAD) {
+        if (type == ModelLineType.BODY) {
           return d.c;
         } else {
           return lerpColor(d.c, #FFFFFF, 0.4);
@@ -527,7 +527,7 @@ class Physics extends LightingDesign {
       }
     }
     color backgroundColor = type.c;
-    if (type == ModelLineType.HEAD) {
+    if (type == ModelLineType.BODY) {
       backgroundColor = lerpColor(backgroundColor, #000000, 0.8);
     }
     color backgroundColorBright = lerpColor(backgroundColor, #000000, 0.3);
@@ -538,7 +538,7 @@ class Physics extends LightingDesign {
 }
 
 class GrowingSpheres extends LightingDesign {
-  final float kSphereChancePerSecond = 0.15;
+  final float kSphereChancePerSecond = 0.2;
   final float kSphereMinSpeed = 10;
   final float kSphereMaxSpeed = 80;
 
@@ -632,7 +632,7 @@ class GrowingSpheres extends LightingDesign {
         break;
       }
     }
-    if (type != ModelLineType.HEAD) {
+    if (type != ModelLineType.BODY) {
       c = lerpColor(c, type.c, 0.7);
     }
     return c;
@@ -728,7 +728,7 @@ class Dots extends LightingDesign {
     int dot = dots[stripNum][ledNum];
     if (dot == 0)
       return black;
-    if (type != ModelLineType.HEAD) {
+    if (type != ModelLineType.BODY) {
       return type.c;
     }
     return dotColor;
