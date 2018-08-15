@@ -10,8 +10,10 @@ import java.util.*;
 // Press 'f' to toggle dino frame
 // Press 'a' to toggle auto-cycle
 
+// No drawing. Use on Raspberry Pi.
+final boolean kDrawingEnabled = false;
 // Draw simple version (no 3d). Use this on old / slow computers.
-final boolean kSimpleDraw = false;
+final boolean kSimpleDraw = true;
 final float kSimpleDrawScale = 5;
 
 // Transition params.
@@ -51,7 +53,9 @@ BeatController beatController = new BeatController();
 long lastTimeUpdate = 0;
 
 void settings() {
-  if (kSimpleDraw) {
+  if (!kDrawingEnabled) {
+    size(1, 1);
+  } else if (kSimpleDraw) {
     size((int)(model.getMaxLedsOnLines() * kSimpleDrawScale), (int)(model.getLines().length * kSimpleDrawScale));
   } else {
     // to have full screen, uncomment the below line and comment out the 'size' call.
@@ -81,14 +85,20 @@ void setup() {
   thread("startCdjListening");
 }
 
+int fpsCount = 0;
+float fpsAvg = 0;
 void draw() {
   if (autoCycle && millisLastChange + kCycleTimeMillis < millis()) {
     nextDesign();
   }
   long newMillis = millis();
   long diff = newMillis - lastTimeUpdate;
+  fpsAvg = fpsAvg*0.9 + 1f/(diff *1f / 1000)*0.1;
   lastTimeUpdate = newMillis;
-
+  if (++fpsCount >= 20) {
+    fpsCount = 0;
+    println(fpsAvg);
+  }
   BeatInfo info = beatController.consumeBeat();
 
   LightingDesign design = designs[currentDesign];
@@ -108,10 +118,12 @@ void draw() {
   }
   fakeBeat = false;
 
-  if (kSimpleDraw) {
-    drawSimple();
-  } else {
-    drawDebug();
+  if (kDrawingEnabled) {
+    if (kSimpleDraw) {
+      drawSimple();
+    } else {
+      drawDebug();
+    }
   }
   sendPixelsToPusher();
 }
@@ -133,19 +145,19 @@ void keyTyped() {
     beatController.armMode(BeatMode.EVERY_FOUR_BEATS);
   if (key == ' ')
     fakeBeat = true;
-  }
+}
 
-  void nextDesign() {
-    if (!transitioning) {
-      transitionPercent = 0;
-      oldDesign = designs[currentDesign];
-    }
-    transitioning = true;
-    currentDesign++;
-    currentDesign = currentDesign % designs.length;
-    millisLastChange = millis();
-    designs[currentDesign].onCycleStart();
+void nextDesign() {
+  if (!transitioning) {
+    transitionPercent = 0;
+    oldDesign = designs[currentDesign];
   }
+  transitioning = true;
+  currentDesign++;
+  currentDesign = currentDesign % designs.length;
+  millisLastChange = millis();
+  designs[currentDesign].onCycleStart();
+}
 
 void drawDebug() {
   background(0);
@@ -242,7 +254,7 @@ void drawSimple() {
       color c = getColorForStripLed(i, j);
       stroke(c);
       fill(c);
-      ellipse(j*2 + 1, i*2 + 1, 1, 1);
+      point(j*2 + 1, i*2 + 1);
     }
   }
   popMatrix();
