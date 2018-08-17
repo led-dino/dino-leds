@@ -381,6 +381,7 @@ class Physics extends LightingDesign {
     float force;
     float mass;
     float radius;
+    float repulsionExtraRadius;
     color c;
 
     int compareTo(Bar other) {
@@ -406,6 +407,7 @@ class Physics extends LightingDesign {
     backgroundColorNose = lerpColor(DinoModel.kNoseColor, #000000, 0.6);
     backgroundColorMouth = lerpColor(DinoModel.kMouthColor, #000000, 0.6);
   }
+
   void init(Model m) {
     model = m;
     // Max of half the space should be filled with stripes.
@@ -452,6 +454,7 @@ class Physics extends LightingDesign {
       dot.radius = random(kBallMinRadius, maxRadius);
       dot.mass = dot.radius * dot.radius * PI;
       dot.c = getNextColor();
+      dot.repulsionExtraRadius = dot.radius / 2;
       dot.velocity = random(-kMaxVelocity, kMaxVelocity);
       do {
         dot.position = random(model.getMinZ() + dot.radius, model.getMaxZ() - dot.radius);
@@ -470,8 +473,68 @@ class Physics extends LightingDesign {
     }
   }
 
+  void correctForEdges(Bar a) {
+    if (a.position - a.radius < 0) {
+      a.position = a.radius;
+      a.velocity = abs(a.velocity);
+    }
+
+    if (a.position + a.radius > model.getMaxZ()) {
+      a.position = model.getMaxZ() - a.radius;
+      a.velocity = -abs(a.velocity);
+    }
+  }
+
+  void applyCollision(Bar a, Bar b) {
+    float distance = abs(b.position - a.position) - (a.radius + b.radius);
+    if (distance < 0) {
+      // Push them apart
+      Bar top = a.position > b.position ? a : b;
+      Bar bottom = a.position < b.position ? a : b;
+      top.position -= distance / 2;
+      bottom.position += distance / 2;
+
+      float totalMass = a.mass + b.mass;
+      float va = b.velocity * (2 * b.mass / totalMass) - a.velocity * (b.mass - a.mass) / totalMass;
+      float vb = a.velocity * (2 * a.mass / totalMass) - b.velocity * (a.mass - b.mass) / totalMass;
+      a.velocity = va;// * 0.95;
+      b.velocity = vb;// * 0.95;
+    }
+
+    if (b.position - b.radius < 0) {
+      b.position = b.radius;
+      b.velocity = abs(b.velocity);
+    }
+    if (b.position + b.radius > model.getMaxZ()) {
+      b.position = model.getMaxZ() - b.radius;
+      b.velocity = -abs(b.velocity);
+    }
+  }
+
+  void applyRepulsion(Bar a, Bar b) {
+    float distance = abs(b.position - a.position) - (a.radius + b.radius);
+    float aRepulsionPercent = (b.repulsionExtraRadius - distance) / b.repulsionExtraRadius;
+    float bRepulsionPercent = (a.repulsionExtraRadius - distance) / a.repulsionExtraRadius;
+
+    float aSign = a.position < b.position ? -1 : 1;
+
+    float maxAcceleration = 10;
+    if (aRepulsionPercent > 0) {
+      a.force += aRepulsionPercent * aRepulsionPercent * b.mass * maxAcceleration * aSign;
+    }
+    if (aRepulsionPercent > 0) {
+      b.force += bRepulsionPercent * bRepulsionPercent * a.mass * maxAcceleration * aSign;
+    }
+  }
+
   void update(long millis) {
     backgroundColorPulseMillis += millis;
+    for (int i = 0; i < bars.size() - 1; ++i) {
+      Bar a = bars.get(i);
+      Bar b = bars.get(i + 1);
+      applyRepulsion(a, b);
+    }
+
     float dt = millis * 1f / 1000;
     for (Bar d : bars) {
       d.velocity += dt * (kGravity  + 1f/d.mass * d.force);
@@ -479,43 +542,29 @@ class Physics extends LightingDesign {
       d.force = 0;
     }
 
+    Collections.sort(bars);
     for (int iteration = 0; iteration < 3; ++iteration) {
-      for (int i = 0; i < bars.size(); ++i) {
+      for (int i = 0; i < bars.size() - 1; ++i) {
         Bar a = bars.get(i);
-
-        for (int j = i + 1; j < bars.size(); ++j) {
-          Bar b = bars.get(j);
-          float distance = abs(b.position - a.position) - (a.radius + b.radius);
-          if (distance < 0) {
-            // Push them apart
-            Bar top = a.position > b.position ? a : b;
-            Bar bottom = a.position < b.position ? a : b;
-            top.position -= distance / 2;
-            bottom.position += distance / 2;
-
-            float totalMass = a.mass + b.mass;
-            float va = b.velocity * (2 * b.mass / totalMass) - a.velocity * (b.mass - a.mass) / totalMass;
-            float vb = a.velocity * (2 * a.mass / totalMass) - b.velocity * (a.mass - b.mass) / totalMass;
-            a.velocity = va;// * 0.95;
-            b.velocity = vb;// * 0.95;
-          }
-        }
-
-        if (a.position - a.radius < 0) {
-          a.position = a.radius;
-          a.velocity = abs(a.velocity);
-        }
-
-        if (a.position + a.radius > model.getMaxZ()) {
-          a.position = model.getMaxZ() - a.radius;
-          a.velocity = -abs(a.velocity);
-        }
+        Bar b = bars.get(i + 1);
+        correctForEdges(a);
+        correctForEdges(b);
+        applyCollision(a, b);
       }
     }
   }
 
+  class RepulsionColorData {
+    color barColor;
+    float percentColor;
+  }
+
+  RepulsionColorData[] repulsionColors = new RepulsionColorData[2];
+
   // Called to get color in current state - can be called before update().
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
+    repulsionColors[0] = null;
+    repulsionColors[1] = null;
     for (Bar d : bars) {
       float distance = abs(position.z - d.position);
       if (distance < d.radius) {
@@ -524,11 +573,30 @@ class Physics extends LightingDesign {
         } else {
           return lerpColor(d.c, #FFFFFF, 0.4);
         }
+      } else if (distance < d.radius  + d.repulsionExtraRadius) {
+        RepulsionColorData data = new RepulsionColorData();
+        data.barColor = d.c;
+        data.percentColor = 1 - (distance - d.radius) * 1f / d.repulsionExtraRadius;
+        if (repulsionColors[0] == null) {
+          repulsionColors[0] = data;
+        } else {
+          repulsionColors[1] = data;
+          break;
+        }
       }
+    }
+    if (repulsionColors[0] != null) {
+      color c = repulsionColors[0].barColor;
+      float percentBlack = 1 - repulsionColors[0].percentColor;
+      if (repulsionColors[1] != null) {
+        c = lerpColor(c, repulsionColors[1].barColor, 0.5);
+        percentBlack *= 1 - repulsionColors[1].percentColor;
+      }
+      return lerpColor(c, #000000, percentBlack);
     }
     color backgroundColor = type.c;
     if (type == ModelLineType.BODY) {
-      backgroundColor = lerpColor(backgroundColor, #000000, 0.8);
+      backgroundColor = lerpColor(backgroundColor, #000000, 0.7);
     }
     color backgroundColorBright = lerpColor(backgroundColor, #000000, 0.3);
     color backgroundColorDark = lerpColor(backgroundColor, #000000, 0.7);

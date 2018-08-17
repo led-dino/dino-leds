@@ -11,9 +11,9 @@ import java.util.*;
 // Press 'a' to toggle auto-cycle
 
 // No drawing. Use on Raspberry Pi.
-final boolean kDrawingEnabled = false;
+final boolean kDrawingEnabled = true;
 // Draw simple version (no 3d). Use this on old / slow computers.
-final boolean kSimpleDraw = true;
+final boolean kSimpleDraw = false;
 final float kSimpleDrawScale = 5;
 
 // Transition params.
