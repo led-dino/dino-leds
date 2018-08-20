@@ -10,22 +10,6 @@ static class DinoModel implements Model {
   public static final color kBodyColor = #20D32A;
 
   public static final int[] kHeadStripOffsets = {
-    // red
-    50, 
-    // orange  
-    0, 
-    // yellow
-    20, 
-    // green  
-    0, 
-    // light blue  
-    100, 
-    // dark blue  
-    20, 
-    // lilac  
-    0, 
-    // royal purple  
-    0, 
     // dash red
     10, 
     // dash orange
@@ -41,26 +25,26 @@ static class DinoModel implements Model {
     // dash light purple
     0, 
     // dash dark purple
+    0,
+    // red
+    50, 
+    // orange  
+    0, 
+    // yellow
+    20, 
+    // green  
+    0, 
+    // light blue  
+    100, 
+    // dark blue  
+    20, 
+    // lilac  
+    0, 
+    // royal purple  
     0
   };
 
   public static final Vec3[][] kHeadStripLines = {
-    // red
-    {new Vec3(265, 98, 0), new Vec3(234, 195, 145), new Vec3(316, 26, 164), new Vec3(350, 209, 222)}, 
-    // orange  
-    {new Vec3(185, 187, 0), new Vec3(234.7, 195.5, 143.5), new Vec3(349.7, 208.8, 222.3), new Vec3(500.3, 259.6, 288.7) }, 
-    // yellow
-    {new Vec3(402.8, 66.8, 252.3), new Vec3(500.4, 10.3, 214.5), new Vec3(500.4, 259.6, 288.7), new Vec3(500.3, 391.8, 368.2)}, 
-    // green  
-    {new Vec3(402.8, 66.8, 252.3), new Vec3(349.8, 208.9, 222.3), new Vec3(276, 482.1, 81.5)}, 
-    // light blue  
-    {new Vec3(211.3, 343.67, 0), new Vec3(234.75, 195.5, 143.5), new Vec3(275.9, 482.1, 81.54), new Vec3(211.3, 343.67, 0)}, 
-    // dark blue  
-    {new Vec3(500.4, 391.8, 368.2), new Vec3(275.95, 482.1, 345.4), new Vec3(349.8, 208.9, 222.3)}, 
-    // lilac  
-    {new Vec3(402.9, 66.8, 252.3), new Vec3(500.4, 259.6, 288.8), new Vec3(275.95, 482.1, 345.38)}, 
-    // royal purple  
-    {new Vec3(500.4, 391.8, 368.25), new Vec3(500.4, 594.33, 426.91), new Vec3(275.95, 733.04, 426.92)}, 
     // dash red
     {new Vec3(275.95, 733.04, 426.92), new Vec3(275.95, 482.1, 345.4), new Vec3(500.4, 594.33, 426.91)}, 
     // dash orange
@@ -77,12 +61,29 @@ static class DinoModel implements Model {
     {new Vec3(17, 727.6, 0), new Vec3(137.2, 663.7, 213.46), new Vec3(120.1, 557.8, 0)}, 
     // dash dark purple
     {new Vec3(137.2, 663.7, 213.46), new Vec3(275.9, 482.1, 81.54), new Vec3(120.1, 557.8, 0)}, 
+    // red
+    {new Vec3(265, 98, 0), new Vec3(234, 195, 145), new Vec3(316, 26, 164), new Vec3(350, 209, 222)}, 
+    // orange  
+    {new Vec3(185, 187, 0), new Vec3(234.7, 195.5, 143.5), new Vec3(349.7, 208.8, 222.3), new Vec3(500.3, 259.6, 288.7) }, 
+    // yellow
+    {new Vec3(402.8, 66.8, 252.3), new Vec3(500.4, 10.3, 214.5), new Vec3(500.4, 259.6, 288.7), new Vec3(500.3, 391.8, 368.2)}, 
+    // green  
+    {new Vec3(402.8, 66.8, 252.3), new Vec3(349.8, 208.9, 222.3), new Vec3(276, 482.1, 81.5)}, 
+    // light blue  
+    {new Vec3(211.3, 343.67, 0), new Vec3(234.75, 195.5, 143.5), new Vec3(275.9, 482.1, 81.54), new Vec3(211.3, 343.67, 0)}, 
+    // dark blue  
+    {new Vec3(500.4, 391.8, 368.2), new Vec3(275.95, 482.1, 345.4), new Vec3(349.8, 208.9, 222.3)}, 
+    // lilac  
+    {new Vec3(402.9, 66.8, 252.3), new Vec3(500.4, 259.6, 288.8), new Vec3(275.95, 482.1, 345.38)}, 
+    // royal purple  
+    {new Vec3(500.4, 391.8, 368.25), new Vec3(500.4, 594.33, 426.91), new Vec3(275.95, 733.04, 426.92)}, 
+
   };
 
   public static final int kAccentStripNum = 5;
-  
+
   public static Vec3[][] kEyeStrips = new Vec3[][] {
-    {new Vec3(275.95, 482.1, 81.54), new Vec3(212.4, 646.2, 219.3), new Vec3(270.6, 665.6, 337.11), new Vec3(275.95, 482.11, 345.38)},
+    {new Vec3(275.95, 482.1, 81.54), new Vec3(212.4, 646.2, 219.3), new Vec3(270.6, 665.6, 337.11), new Vec3(275.95, 482.11, 345.38)}, 
     {new Vec3(275.95, 482.1, 81.54), new Vec3(345.73, 357.5, 233.7), new Vec3(275.95, 482.11, 345.38), new Vec3(270.6, 665.6, 337.11)}
   };
 
@@ -94,14 +95,14 @@ static class DinoModel implements Model {
   public static Vec3[][] kNoseStrips = new Vec3[][] {
     {new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56), new Vec3(316.46, 26.68, 164.58), new Vec3(402.85, 66.83, 252.3), new Vec3(334.4, 106.7, 235.56)}
   };
-  
+
   public static Vec3[][] kRibStrips = new Vec3[][] {
-    {new Vec3(402.8, 212, 0), new Vec3(422.8, 262, 235), new Vec3(442.8, 212, 0)},
-    {new Vec3(402.8, 577, 0), new Vec3(422.8, 537, 235), new Vec3(442.8, 577, 0)},
-    {new Vec3(402.8, 942, 0), new Vec3(422.8, 892, 235), new Vec3(442.8, 942, 0)},
-    {new Vec3(555.2, 212, 0), new Vec3(575.2, 262, 235), new Vec3(595.2, 212, 0)},
-    {new Vec3(555.2, 577, 0), new Vec3(575.2, 537, 235), new Vec3(595.2, 577, 0)},
-    {new Vec3(555.2, 942, 0), new Vec3(575.2, 892, 235), new Vec3(595.2, 942, 0)},
+    {new Vec3(402.8, 212, 0), new Vec3(422.8, 262, 235), new Vec3(442.8, 212, 0)}, 
+    {new Vec3(402.8, 577, 0), new Vec3(422.8, 537, 235), new Vec3(442.8, 577, 0)}, 
+    {new Vec3(402.8, 942, 0), new Vec3(422.8, 892, 235), new Vec3(442.8, 942, 0)}, 
+    {new Vec3(555.2, 212, 0), new Vec3(575.2, 262, 235), new Vec3(595.2, 212, 0)}, 
+    {new Vec3(555.2, 577, 0), new Vec3(575.2, 537, 235), new Vec3(595.2, 577, 0)}, 
+    {new Vec3(555.2, 942, 0), new Vec3(575.2, 892, 235), new Vec3(595.2, 942, 0)}, 
   };
 
   public static final ModelDebugLine[] debugLines = new ModelDebugLine[] {};
@@ -139,7 +140,7 @@ static class DinoModel implements Model {
       Vec3[] points = kNoseStrips[i];
       linesList.add(createLedStripLine(points, 0, kNumLedsPerStrip, kLedSeparationInCM, ModelLineType.NOSE));
     }
-    
+
     for (int i = 0; i < kRibStrips.length; i++) {
       Vec3[] points = kRibStrips[i];
       linesList.add(createLedStripLine(points, 0, 150, 500f / 150, ModelLineType.BODY));
@@ -221,8 +222,8 @@ class DinoDebugLighting extends LightingDesign {
     #FE00FF, 
     #BA00FF
   };
-  
-  
+
+
   boolean supportsEyeColors() { 
     return true;
   }
@@ -239,13 +240,20 @@ class DinoDebugLighting extends LightingDesign {
   }
 
   color getColor(int stripNum, int ledNum, Vec3 position, ModelLineType type) {
-    if (ledNum % kMarchSize != march)
-      return #000000;
-    if (stripNum < DinoModel.kHeadStripLines.length)
+    if (ledNum % kMarchSize == march)
+      return #FFFFFF;
+
+    if (stripNum < DinoModel.kHeadStripLines.length) {
+      if (stripNum < 8) {
+        return (ledNum/4) % 2 == 0 ? stripColors[stripNum % 8] : #000000;
+      }
       return stripColors[stripNum % 8];
+    }
     stripNum -=DinoModel.kHeadStripLines.length;
-    if (stripNum < DinoModel.kAccentStripNum)
-      return stripColors[stripNum];
+
+    if (stripNum < DinoModel.kAccentStripNum) {
+      return ledNum % 2 == 0 ? stripColors[stripNum % 8] : #000000;
+    }
     stripNum -=DinoModel.kAccentStripNum;
     return stripColors[stripNum];
   }

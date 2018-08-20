@@ -105,7 +105,7 @@ class SinWaves extends LightingDesign {
 
 class ColorWave extends LightingDesign {
   final float kAdjustPercentPerSecond = 0.8;
-  final float kDisconnectedColorChancePerSecond = 0.05f;
+  final float kDisconnectedColorChancePerSecond = 0.025f;
   final float kMillisUntilBrightEyes = 500f;
   int NUM_SEGMENTS = 300;
 
@@ -608,7 +608,7 @@ class Physics extends LightingDesign {
 class GrowingSpheres extends LightingDesign {
   final float kSphereChancePerSecond = 0.2;
   final float kSphereMinSpeed = 10;
-  final float kSphereMaxSpeed = 80;
+  final float kSphereMaxSpeed = 50;
 
   class Sphere {
     float radius;

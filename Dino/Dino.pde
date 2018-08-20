@@ -17,7 +17,7 @@ final boolean kSimpleDraw = false;
 final float kSimpleDrawScale = 5;
 
 // Transition params.
-final int kCycleTimeMillis = 60*1000;
+final int kCycleTimeMillis = 3*60*1000;
 final float kSecondsForTransition = 5;
 
 Model model = new DinoModel();
@@ -97,7 +97,7 @@ void draw() {
   lastTimeUpdate = newMillis;
   if (++fpsCount >= 20) {
     fpsCount = 0;
-    println(fpsAvg);
+    //println(fpsAvg);
   }
   BeatInfo info = beatController.consumeBeat();
 
