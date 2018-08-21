@@ -1,0 +1,13 @@
+[Unit]
+Description=dino-leds
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+User=pi
+Group=pi
+Type=idle
+ExecStart=/usr/bin/xvfb-run /home/pi/dino-leds/Dino/application.linux-armv6hf/Dino
+
+[Install]
+WantedBy=multi-user.target
